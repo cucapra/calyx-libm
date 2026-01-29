@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use super::analysis::{self as sem, PassManager};
 use crate::fpcore::{ast, metadata as meta};
 use crate::hir::{self, EntityList, PackedOption, Pool};
 use crate::opts::Opts;
-use crate::sem::{self, PassManager};
 use crate::utils::{Diagnostic, Reporter};
 
 pub fn lower_ast(

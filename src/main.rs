@@ -8,7 +8,7 @@ use calyx_libm::backend::{self, ImportPaths, Program};
 use calyx_libm::fpcore::{FPCoreParser, ast::Span};
 use calyx_libm::opts::Opts;
 use calyx_libm::utils::{Diagnostic, Reporter};
-use calyx_libm::{hir, passes};
+use calyx_libm::{lowering, passes};
 
 fn read_input(file: &Option<PathBuf>) -> io::Result<(Cow<'_, str>, String)> {
     if let Some(file) = file {
@@ -72,7 +72,7 @@ fn main() -> ExitCode {
         }
     };
 
-    let Some(mut ctx) = hir::lower_ast(defs, &opts, &mut reporter) else {
+    let Some(mut ctx) = lowering::lower_ast(defs, &opts, &mut reporter) else {
         return ExitCode::FAILURE;
     };
 
