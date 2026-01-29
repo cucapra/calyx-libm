@@ -8,8 +8,8 @@ use malachite::num::arithmetic::traits::{IsPowerOf2, PowerOf2};
 use malachite::num::basic::traits::{Two, Zero};
 use malachite::{Natural, Rational};
 
-use crate::utils::rational::{FixedPoint, RoundBinary};
-use crate::utils::{Format, Mangle};
+use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
+use calyx_libm_utils::{Format, Mangle};
 
 /// A specification for obtaining table indices from raw input values.
 #[derive(Mangle)]
@@ -149,7 +149,7 @@ impl TableDomain {
         Ok((TableDomain { left, right }, stride))
     }
 
-    pub(super) fn center(a: Rational, b: Rational) -> Rational {
+    pub(crate) fn center(a: Rational, b: Rational) -> Rational {
         if a.sign() != b.sign() || a.sign() == Ordering::Equal {
             Rational::ZERO
         } else {

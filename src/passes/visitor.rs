@@ -1,4 +1,4 @@
-use crate::hir::{self, EntityList, Pool};
+use calyx_libm_hir::{self as hir, EntityList, Pool};
 
 pub trait Visitor {
     type Error;

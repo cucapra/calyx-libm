@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-use crate::hir;
-use crate::utils::{Diagnostic, Reporter};
+use calyx_libm_hir as hir;
+use calyx_libm_utils::{Diagnostic, Reporter};
 
 #[derive(Debug)]
 pub struct UnsupportedPredicateError;

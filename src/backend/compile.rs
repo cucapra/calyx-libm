@@ -4,13 +4,14 @@ use std::{io, iter, mem};
 use calyx_ir as ir;
 use itertools::Itertools;
 
+use calyx_libm_hir as hir;
+use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
+use calyx_libm_utils::{Diagnostic, Format, Reporter};
+
 use super::libm::{self, Prototype};
 use super::stdlib::{ImportPaths, ImportSet, Primitive};
 use super::{ComponentManager, IrBuilder};
-use crate::hir;
 use crate::opts::Opts;
-use crate::utils::rational::{FixedPoint, RoundBinary};
-use crate::utils::{Diagnostic, Format, Reporter};
 
 pub struct Program {
     imports: ImportSet,

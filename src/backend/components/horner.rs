@@ -7,11 +7,12 @@ use itertools::{Itertools, Position};
 use malachite::Natural;
 use malachite::num::basic::traits::One;
 
+use calyx_libm_approx::Datapath;
+use calyx_libm_utils::mangling::mangle;
+use calyx_libm_utils::{Diagnostic, Format};
+
 use super::{Cast, ComponentBuilder, ComponentManager};
-use crate::approx::Datapath;
 use crate::backend::{Import, IrBuilder};
-use crate::utils::mangling::mangle;
-use crate::utils::{Diagnostic, Format};
 
 const INLINE: ir::Attribute = ir::Attribute::Bool(ir::BoolAttr::Inline);
 

@@ -3,10 +3,11 @@ use std::ops::Index;
 
 use strum_macros::Display;
 
+use calyx_libm_ast::ast;
+use calyx_libm_utils::{Diagnostic, Reporter};
+
 use super::bindings::{Binding, NameResolution};
 use super::passes::{Pass, PassManager};
-use crate::fpcore::ast;
-use crate::utils::{Diagnostic, Reporter};
 
 #[derive(Clone, Copy, PartialEq, Eq, Display)]
 pub enum Type {

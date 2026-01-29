@@ -2,8 +2,9 @@ use std::collections::HashSet;
 
 use calyx_ir as ir;
 
+use calyx_libm_utils::Diagnostic;
+
 use crate::backend::stdlib::{Import, Importer};
-use crate::utils::Diagnostic;
 
 pub trait PrimitiveBuilder {
     fn name(&self) -> ir::Id;

@@ -8,9 +8,10 @@ use malachite::num::arithmetic::traits::{FloorLogBase2, PowerOf2, Sign};
 use malachite::num::basic::traits::{NegativeOne, One};
 use malachite::num::conversion::traits::ExactFrom;
 
-use super::PolynomialApprox;
-use crate::utils::interval::Interval;
-use crate::utils::{Format, Mangle};
+use calyx_libm_utils::interval::Interval;
+use calyx_libm_utils::{Format, Mangle};
+
+use crate::PolynomialApprox;
 
 /// Architectural parameters for a polynomial evaluator.
 #[derive(Mangle)]

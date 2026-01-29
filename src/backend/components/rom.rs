@@ -3,9 +3,10 @@ use std::fmt::Write;
 use calyx_ir as ir;
 use malachite::Natural;
 
+use calyx_libm_utils::Diagnostic;
+use calyx_libm_utils::mangling::{Hash, mangle};
+
 use super::PrimitiveBuilder;
-use crate::utils::Diagnostic;
-use crate::utils::mangling::{Hash, mangle};
 
 pub struct Rom<'a> {
     pub idx_width: u64,

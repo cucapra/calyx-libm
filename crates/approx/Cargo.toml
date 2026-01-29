@@ -1,0 +1,10 @@
+[package]
+name = "calyx-libm-approx"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+itertools.workspace = true
+malachite.workspace = true
+
+calyx-libm-utils.workspace = true

@@ -2,10 +2,11 @@
 
 use calyx_ir as ir;
 
+use calyx_libm_utils::mangling::mangle;
+use calyx_libm_utils::{Diagnostic, Format};
+
 use super::{ComponentBuilder, ComponentManager};
 use crate::backend::{Import, IrBuilder};
-use crate::utils::mangling::mangle;
-use crate::utils::{Diagnostic, Format};
 
 pub struct Cast<'a> {
     pub from: &'a Format,

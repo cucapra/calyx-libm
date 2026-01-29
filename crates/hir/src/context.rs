@@ -31,12 +31,14 @@ macro_rules! index_impl {
         impl Index<$idx> for Context {
             type Output = $out;
 
+            #[inline]
             fn index(&self, index: $idx) -> &Self::Output {
                 &self.$field[index]
             }
         }
 
         impl IndexMut<$idx> for Context {
+            #[inline]
             fn index_mut(&mut self, index: $idx) -> &mut Self::Output {
                 &mut self.$field[index]
             }
@@ -53,6 +55,7 @@ index_impl!(writes, idx::WriteIdx, ir::Write);
 impl Index<idx::SollyaIdx> for Context {
     type Output = ir::SollyaExpr;
 
+    #[inline]
     fn index(&self, index: idx::SollyaIdx) -> &Self::Output {
         &self.ops[index]
     }
@@ -61,6 +64,7 @@ impl Index<idx::SollyaIdx> for Context {
 impl Index<EntityList<idx::ExprIdx>> for Context {
     type Output = [idx::ExprIdx];
 
+    #[inline]
     fn index(&self, index: EntityList<idx::ExprIdx>) -> &Self::Output {
         index.as_slice(&self.expr_lists)
     }
@@ -69,6 +73,7 @@ impl Index<EntityList<idx::ExprIdx>> for Context {
 impl Index<EntityList<idx::WriteIdx>> for Context {
     type Output = [idx::WriteIdx];
 
+    #[inline]
     fn index(&self, index: EntityList<idx::WriteIdx>) -> &Self::Output {
         index.as_slice(&self.write_lists)
     }
@@ -81,20 +86,24 @@ pub trait Pool<P> {
 }
 
 impl Pool<ListPool<idx::ExprIdx>> for Context {
+    #[inline]
     fn pool(&self) -> &ListPool<idx::ExprIdx> {
         &self.expr_lists
     }
 
+    #[inline]
     fn mut_pool(&mut self) -> &mut ListPool<idx::ExprIdx> {
         &mut self.expr_lists
     }
 }
 
 impl Pool<ListPool<idx::WriteIdx>> for Context {
+    #[inline]
     fn pool(&self) -> &ListPool<idx::WriteIdx> {
         &self.write_lists
     }
 
+    #[inline]
     fn mut_pool(&mut self) -> &mut ListPool<idx::WriteIdx> {
         &mut self.write_lists
     }
@@ -138,6 +147,7 @@ impl FusedIterator for Props<'_> {}
 macro_rules! scope_impl {
     ($for:ty) => {
         impl Metadata for $for {
+            #[inline]
             fn scope(&self) -> PackedOption<idx::ScopeIdx> {
                 self.scope
             }

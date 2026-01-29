@@ -8,7 +8,7 @@ use pest_consume::{Parser, match_nodes};
 use super::{ast, literals, metadata as meta};
 
 #[derive(Parser)]
-#[grammar = "fpcore/syntax.pest"]
+#[grammar = "syntax.pest"]
 pub struct FPCoreParser;
 
 impl FPCoreParser {

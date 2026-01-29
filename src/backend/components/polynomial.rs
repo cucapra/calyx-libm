@@ -4,11 +4,12 @@ use std::cmp;
 
 use calyx_ir::{self as ir, build_assignments};
 
+use calyx_libm_approx::Datapath;
+use calyx_libm_utils::diagnostics::Diagnostic;
+use calyx_libm_utils::mangling::mangle;
+
 use super::{ComponentBuilder, ComponentManager, Horner, LookupTable};
-use crate::approx::Datapath;
 use crate::backend::IrBuilder;
-use crate::utils::diagnostics::Diagnostic;
-use crate::utils::mangling::mangle;
 
 pub struct PiecewisePoly<'a> {
     pub table: LookupTable<'a>,

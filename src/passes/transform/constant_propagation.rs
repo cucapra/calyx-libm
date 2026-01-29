@@ -1,4 +1,5 @@
-use crate::hir;
+use calyx_libm_hir as hir;
+
 use crate::passes::{Pass, PassContext, PassError, Visitor, visitor};
 
 pub struct ConstantPropagation;

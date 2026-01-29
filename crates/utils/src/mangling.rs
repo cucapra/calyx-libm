@@ -11,9 +11,10 @@ pub use calyx_libm_macros::Mangle;
 
 /// Encodes context information into an identifier. The resulting identifier is
 /// a valid name in the IA-64 C++ ABI's name mangling scheme.
+#[macro_export]
 macro_rules! mangle {
     ($name:expr, $($arg:expr),+ $(,)?) => {{
-        use $crate::utils::Mangle as _;
+        use $crate::Mangle as _;
 
         let mut res = match $name {
             name => ::std::format!("_Z{}{}I", name.len(), name),
@@ -30,7 +31,7 @@ macro_rules! mangle {
     }};
 }
 
-pub(crate) use mangle;
+pub use mangle;
 
 /// A trait for formatting data as a mangled expression.
 pub trait Mangle {

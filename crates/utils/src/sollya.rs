@@ -6,7 +6,7 @@ use std::process::{Command, Stdio};
 use std::string::FromUtf8Error;
 use std::{fmt, thread};
 
-use crate::utils::Diagnostic;
+use crate::Diagnostic;
 
 /// Invokes Sollya with the given command.
 pub fn sollya(cmd: &[u8], args: &[&str]) -> Result<String, SollyaError> {

@@ -1,0 +1,9 @@
+[package]
+name = "calyx-libm-hir"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cranelift-entity.workspace = true
+
+calyx-libm-ast.workspace = true

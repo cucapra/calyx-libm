@@ -3,9 +3,10 @@
 use calyx_ir as ir;
 use malachite::Natural;
 
+use calyx_libm_utils::Diagnostic;
+use calyx_libm_utils::mangling::mangle;
+
 use super::PrimitiveBuilder;
-use crate::utils::Diagnostic;
-use crate::utils::mangling::mangle;
 
 pub struct Constant<'a> {
     pub width: u64,

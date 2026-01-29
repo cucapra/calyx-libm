@@ -3,9 +3,10 @@
 use itertools::Itertools;
 use malachite::Rational;
 
-use super::TableDomain;
-use crate::utils::rational::{Dyadic, RoundBinary};
-use crate::utils::sollya::{self, ScriptError};
+use calyx_libm_utils::rational::{Dyadic, RoundBinary};
+use calyx_libm_utils::sollya::{self, ScriptError};
+
+use crate::TableDomain;
 
 /// Guesses the minimum number of subintervals needed to approximate `f` by
 /// polynomials of the given degree and within the given error bound after

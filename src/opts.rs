@@ -2,7 +2,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use crate::utils::Format;
+use calyx_libm_utils::Format;
 
 #[derive(Clone, Copy, Default)]
 pub enum RangeAnalysis {

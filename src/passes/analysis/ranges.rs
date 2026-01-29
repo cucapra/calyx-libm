@@ -3,12 +3,13 @@ use std::ops::Index;
 
 use itertools::Itertools;
 
+use calyx_libm_hir::{self as hir, Metadata, Visitor, arena::SecondaryMap};
+use calyx_libm_utils::rational::Dyadic;
+use calyx_libm_utils::sollya::{self, ScriptError};
+use calyx_libm_utils::{Diagnostic, Format, Reporter};
+
 use super::Precondition;
-use crate::hir::{self, Metadata, Visitor, arena::SecondaryMap};
 use crate::opts::Opts;
-use crate::utils::rational::Dyadic;
-use crate::utils::sollya::{self, ScriptError};
-use crate::utils::{Diagnostic, Format, Reporter};
 
 const PROLOGUE: &str = "\
 dieonerrormode = on!;

@@ -2,8 +2,9 @@
 
 use smallvec::{SmallVec, smallvec};
 
+use calyx_libm_utils::Format;
+
 use super::Import;
-use crate::utils::Format;
 
 #[derive(Clone, Copy)]
 pub enum Parameters {

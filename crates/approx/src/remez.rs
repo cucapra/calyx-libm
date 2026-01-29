@@ -2,9 +2,10 @@
 
 use malachite::Rational;
 
-use super::TableDomain;
-use crate::utils::rational::Dyadic;
-use crate::utils::sollya::{self, ScriptError};
+use calyx_libm_utils::rational::Dyadic;
+use calyx_libm_utils::sollya::{self, ScriptError};
+
+use crate::TableDomain;
 
 /// Constructs a table of polynomials approximating `f` piecewise over the given
 /// domain.

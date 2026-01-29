@@ -125,19 +125,47 @@ dependencies = [
  "argh",
  "calyx-frontend",
  "calyx-ir",
- "calyx-libm-macros",
+ "calyx-libm-approx",
+ "calyx-libm-ast",
+ "calyx-libm-hir",
+ "calyx-libm-utils",
  "calyx-utils",
- "codespan-reporting",
- "cranelift-entity",
  "itertools",
+ "malachite",
+ "smallvec",
+ "strum 0.27.1",
+ "strum_macros 0.27.1",
+]
+
+[[package]]
+name = "calyx-libm-approx"
+version = "0.1.0"
+dependencies = [
+ "calyx-libm-utils",
+ "itertools",
+ "malachite",
+]
+
+[[package]]
+name = "calyx-libm-ast"
+version = "0.1.0"
+dependencies = [
+ "calyx-utils",
  "malachite",
  "pest",
  "pest_consume",
  "pest_derive",
  "pretty",
- "smallvec",
  "strum 0.27.1",
  "strum_macros 0.27.1",
+]
+
+[[package]]
+name = "calyx-libm-hir"
+version = "0.1.0"
+dependencies = [
+ "calyx-libm-ast",
+ "cranelift-entity",
 ]
 
 [[package]]
@@ -147,6 +175,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.71",
+]
+
+[[package]]
+name = "calyx-libm-utils"
+version = "0.1.0"
+dependencies = [
+ "calyx-libm-macros",
+ "codespan-reporting",
+ "itertools",
+ "malachite",
 ]
 
 [[package]]
@@ -176,7 +214,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
 dependencies = [
  "termcolor",
- "unicode-width",
+ "unicode-width 0.1.13",
 ]
 
 [[package]]
@@ -190,15 +228,15 @@ dependencies = [
 
 [[package]]
 name = "cranelift-bitset"
-version = "0.123.2"
+version = "0.123.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c23914fc4062558650a6f0d8c1846c97b541215a291fdeabc85f68bdc9bbcca3"
+checksum = "0f7468865d7cf72637a30d5fb97c4fc38b6ea82ab54ca913c81e7403274802be"
 
 [[package]]
 name = "cranelift-entity"
-version = "0.123.2"
+version = "0.123.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e8c542c856feb50d504e4fc0526b3db3a514f882a9f68f956164531517828ab"
+checksum = "d58a1de9bdab836734c42902ce948a5cdcc923ae8ce30b29a24dbe76098df659"
 dependencies = [
  "cranelift-bitset",
 ]
@@ -501,13 +539,13 @@ dependencies = [
 
 [[package]]
 name = "pretty"
-version = "0.12.3"
+version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b55c4d17d994b637e2f4daf6e5dc5d660d209d5642377d675d7a1c3ab69fa579"
+checksum = "0d22152487193190344590e4f30e219cf3fe140d9e7a3fdb683d82aa2c5f4156"
 dependencies = [
  "arrayvec",
  "typed-arena",
- "unicode-width",
+ "unicode-width 0.2.2",
 ]
 
 [[package]]
@@ -727,6 +765,12 @@ name = "unicode-width"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
+
+[[package]]
+name = "unicode-width"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
 
 [[package]]
 name = "version_check"

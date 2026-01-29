@@ -4,13 +4,14 @@ use std::slice;
 use calyx_ir as ir;
 use malachite::num::basic::traits::Zero;
 
+use calyx_libm_approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
+use calyx_libm_hir::{self as hir, Metadata, Pool, Visitor};
+use calyx_libm_utils::mangling::{Hash, Mangle};
+use calyx_libm_utils::{Diagnostic, Format, Reporter};
+
 use super::components::{self as comp, ComponentManager};
-use crate::approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
-use crate::hir::{self, Metadata, Pool, Visitor};
 use crate::opts::{Opts, RangeAnalysis as AnalysisMode};
 use crate::passes::analysis::RangeAnalysis;
-use crate::utils::mangling::{Hash, Mangle};
-use crate::utils::{Diagnostic, Format, Reporter};
 
 pub struct Prototype {
     pub name: ir::Id,

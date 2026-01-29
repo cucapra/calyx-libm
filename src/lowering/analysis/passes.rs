@@ -1,8 +1,9 @@
 use std::cell::{OnceCell, RefCell, RefMut};
 
-use crate::fpcore::ast;
+use calyx_libm_ast::ast;
+use calyx_libm_utils::Reporter;
+
 use crate::opts::Opts;
-use crate::utils::Reporter;
 
 pub trait Managed<Cache>
 where

@@ -1,10 +1,13 @@
+use calyx_libm_ast::ast;
+
 use super::arena::{EntityList, PackedOption};
 use super::index as idx;
 
-pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
-pub use crate::fpcore::ast::{
+pub use ast::{
     Constant, Id, MathConst, Number, Rational, Span, Symbol, TestOp,
 };
+
+pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
 
 pub struct Definition {
     pub name: Option<Symbol>,
@@ -119,4 +122,24 @@ pub enum Strategy {
         degree: u32,
         error: PackedOption<idx::NumIdx>,
     },
+}
+
+impl TryFrom<ast::MathOp> for ArithOp {
+    type Error = ();
+
+    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
+        match value {
+            ast::MathOp::Add => Ok(ArithOp::Add),
+            ast::MathOp::Sub => Ok(ArithOp::Sub),
+            ast::MathOp::Mul => Ok(ArithOp::Mul),
+            ast::MathOp::Div => Ok(ArithOp::Div),
+            ast::MathOp::Neg => Ok(ArithOp::Neg),
+            ast::MathOp::Pow => Ok(ArithOp::Pow),
+            ast::MathOp::Sqrt => Ok(ArithOp::Sqrt),
+            ast::MathOp::FAbs => Ok(ArithOp::Abs),
+            ast::MathOp::FMax => Ok(ArithOp::Max),
+            ast::MathOp::FMin => Ok(ArithOp::Min),
+            _ => Err(()),
+        }
+    }
 }

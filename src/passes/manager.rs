@@ -1,7 +1,8 @@
+use calyx_libm_hir as hir;
+use calyx_libm_utils::Reporter;
+
 use super::transform;
-use crate::hir;
 use crate::opts::Opts;
-use crate::utils::Reporter;
 
 #[derive(Debug)]
 pub struct PassError;

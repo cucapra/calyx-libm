@@ -1,9 +1,10 @@
 use std::collections::hash_map::{Entry, HashMap};
 
+use calyx_libm_ast::{Visitor, ast, visitor};
+use calyx_libm_utils::{Diagnostic, Reporter};
+
 use super::NameResolution;
 use super::passes::{Pass, PassManager};
-use crate::fpcore::{Visitor, ast, visitor};
-use crate::utils::{Diagnostic, Reporter};
 
 pub struct CallGraph<'ast> {
     pub linearized: Vec<&'ast ast::FPCore>,

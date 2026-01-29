@@ -4,10 +4,11 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{io, iter};
 
+use calyx_libm_ast::{FPCoreParser, ast::Span};
+use calyx_libm_utils::{Diagnostic, Reporter};
+
 use calyx_libm::backend::{self, ImportPaths, Program};
-use calyx_libm::fpcore::{FPCoreParser, ast::Span};
 use calyx_libm::opts::Opts;
-use calyx_libm::utils::{Diagnostic, Reporter};
 use calyx_libm::{lowering, passes};
 
 fn read_input(file: &Option<PathBuf>) -> io::Result<(Cow<'_, str>, String)> {

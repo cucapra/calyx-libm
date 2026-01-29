@@ -1,4 +1,4 @@
-use crate::hir::{self, EntityList};
+use crate::{self as hir, EntityList};
 
 pub trait Visitor {
     type Error;

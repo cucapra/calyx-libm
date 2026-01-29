@@ -1,0 +1,11 @@
+[package]
+name = "calyx-libm-utils"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+codespan-reporting.workspace = true
+itertools.workspace = true
+malachite.workspace = true
+
+calyx-libm-macros.workspace = true

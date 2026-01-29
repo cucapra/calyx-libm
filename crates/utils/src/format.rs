@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use itertools::PeekingNext;
 
-use crate::utils::Mangle;
+use crate::Mangle;
 
 /// A fixed-point number format with `width` total bits and a scaling factor of
 /// 2^`scale`.
@@ -24,7 +24,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// # use calyx_libm::utils::Format;
+    /// # use calyx_libm_utils::Format;
     /// #
     /// let format = Format { scale: -1, width: 4, is_signed: false };
     ///
@@ -53,7 +53,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// # use calyx_libm::utils::Format;
+    /// # use calyx_libm_utils::Format;
     /// #
     /// let format = Format { scale: -1, width: 4, is_signed: false };
     ///

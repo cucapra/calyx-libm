@@ -8,7 +8,7 @@ use malachite::num::logic::traits::SignificantBits;
 use malachite::{Natural, Rational};
 
 use super::FractionBits;
-use crate::utils::Format;
+use crate::Format;
 
 /// A trait for converting to fixed-point representation.
 pub trait FixedPoint {

@@ -1,10 +1,36 @@
 [package]
 name = "calyx-libm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+argh.workspace = true
+calyx-frontend.workspace = true
+calyx-ir.workspace = true
+calyx-utils.workspace = true
+itertools.workspace = true
+malachite.workspace = true
+smallvec.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+
+calyx-libm-approx.workspace = true
+calyx-libm-ast.workspace = true
+calyx-libm-hir.workspace = true
+calyx-libm-utils.workspace = true
+
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
 argh = "0.1"
+calyx-frontend = "0.6.0"
+calyx-ir = "0.6.0"
+calyx-utils = "0.6.0"
 codespan-reporting = "0.11"
 cranelift-entity = "0.123"
 itertools = "0.11"
@@ -12,13 +38,13 @@ malachite = "0.4"
 pest = "2"
 pest_derive = "2"
 pest_consume = "1"
-pretty = { version = "0.12", optional = true }
+pretty = "0.12"
 smallvec = "1"
 strum = "0.27"
 strum_macros = "0.27"
 
-calyx-frontend = "0.6.0"
-calyx-ir = "0.6.0"
-calyx-utils = "0.6.0"
-
-calyx-libm-macros = { path = "macros" }
+calyx-libm-approx = { path = "crates/approx" }
+calyx-libm-ast = { path = "crates/ast" }
+calyx-libm-hir = { path = "crates/hir" }
+calyx-libm-macros = { path = "crates/macros" }
+calyx-libm-utils = { path = "crates/utils" }

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
+use calyx_libm_ast::{ast, metadata as meta};
+use calyx_libm_hir::{self as hir, EntityList, PackedOption, Pool};
+use calyx_libm_utils::{Diagnostic, Reporter};
+
 use super::analysis::{self as sem, PassManager};
-use crate::fpcore::{ast, metadata as meta};
-use crate::hir::{self, EntityList, PackedOption, Pool};
 use crate::opts::Opts;
-use crate::utils::{Diagnostic, Reporter};
 
 pub fn lower_ast(
     defs: Vec<ast::FPCore>,
@@ -373,56 +374,5 @@ impl<'ast> Builder<'_, 'ast, '_> {
         props.iter().try_fold(self.parent, |parent, prop| {
             self.lower_property(&prop.kind, parent)
         })
-    }
-}
-
-impl TryFrom<ast::MathOp> for hir::ArithOp {
-    type Error = ();
-
-    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
-        match value {
-            ast::MathOp::Add => Ok(hir::ArithOp::Add),
-            ast::MathOp::Sub => Ok(hir::ArithOp::Sub),
-            ast::MathOp::Mul => Ok(hir::ArithOp::Mul),
-            ast::MathOp::Div => Ok(hir::ArithOp::Div),
-            ast::MathOp::Neg => Ok(hir::ArithOp::Neg),
-            ast::MathOp::Pow => Ok(hir::ArithOp::Pow),
-            ast::MathOp::Sqrt => Ok(hir::ArithOp::Sqrt),
-            ast::MathOp::FAbs => Ok(hir::ArithOp::Abs),
-            ast::MathOp::FMax => Ok(hir::ArithOp::Max),
-            ast::MathOp::FMin => Ok(hir::ArithOp::Min),
-            _ => Err(()),
-        }
-    }
-}
-
-impl TryFrom<ast::MathOp> for hir::SollyaFn {
-    type Error = ();
-
-    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
-        match value {
-            ast::MathOp::Sin => Ok(hir::SollyaFn::Sin),
-            ast::MathOp::Cos => Ok(hir::SollyaFn::Cos),
-            ast::MathOp::Tan => Ok(hir::SollyaFn::Tan),
-            ast::MathOp::Sinh => Ok(hir::SollyaFn::Sinh),
-            ast::MathOp::Cosh => Ok(hir::SollyaFn::Cosh),
-            ast::MathOp::Tanh => Ok(hir::SollyaFn::Tanh),
-            ast::MathOp::ASin => Ok(hir::SollyaFn::ASin),
-            ast::MathOp::ACos => Ok(hir::SollyaFn::ACos),
-            ast::MathOp::ATan => Ok(hir::SollyaFn::ATan),
-            ast::MathOp::ASinh => Ok(hir::SollyaFn::ASinh),
-            ast::MathOp::ACosh => Ok(hir::SollyaFn::ACosh),
-            ast::MathOp::ATanh => Ok(hir::SollyaFn::ATanh),
-            ast::MathOp::Exp => Ok(hir::SollyaFn::Exp),
-            ast::MathOp::ExpM1 => Ok(hir::SollyaFn::ExpM1),
-            ast::MathOp::Log => Ok(hir::SollyaFn::Log),
-            ast::MathOp::Log2 => Ok(hir::SollyaFn::Log2),
-            ast::MathOp::Log10 => Ok(hir::SollyaFn::Log10),
-            ast::MathOp::Log1P => Ok(hir::SollyaFn::Log1P),
-            ast::MathOp::Erf => Ok(hir::SollyaFn::Erf),
-            ast::MathOp::ErfC => Ok(hir::SollyaFn::ErfC),
-            ast::MathOp::Sqrt => Ok(hir::SollyaFn::Sqrt),
-            _ => Err(()),
-        }
     }
 }

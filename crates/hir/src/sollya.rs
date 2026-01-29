@@ -1,5 +1,7 @@
 use std::fmt;
 
+use calyx_libm_ast::ast;
+
 use super::Context;
 use super::index as idx;
 
@@ -66,6 +68,37 @@ impl SollyaFn {
             SollyaFn::Erf => "erf",
             SollyaFn::ErfC => "erfc",
             SollyaFn::Sqrt => "sqrt",
+        }
+    }
+}
+
+impl TryFrom<ast::MathOp> for SollyaFn {
+    type Error = ();
+
+    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
+        match value {
+            ast::MathOp::Sin => Ok(SollyaFn::Sin),
+            ast::MathOp::Cos => Ok(SollyaFn::Cos),
+            ast::MathOp::Tan => Ok(SollyaFn::Tan),
+            ast::MathOp::Sinh => Ok(SollyaFn::Sinh),
+            ast::MathOp::Cosh => Ok(SollyaFn::Cosh),
+            ast::MathOp::Tanh => Ok(SollyaFn::Tanh),
+            ast::MathOp::ASin => Ok(SollyaFn::ASin),
+            ast::MathOp::ACos => Ok(SollyaFn::ACos),
+            ast::MathOp::ATan => Ok(SollyaFn::ATan),
+            ast::MathOp::ASinh => Ok(SollyaFn::ASinh),
+            ast::MathOp::ACosh => Ok(SollyaFn::ACosh),
+            ast::MathOp::ATanh => Ok(SollyaFn::ATanh),
+            ast::MathOp::Exp => Ok(SollyaFn::Exp),
+            ast::MathOp::ExpM1 => Ok(SollyaFn::ExpM1),
+            ast::MathOp::Log => Ok(SollyaFn::Log),
+            ast::MathOp::Log2 => Ok(SollyaFn::Log2),
+            ast::MathOp::Log10 => Ok(SollyaFn::Log10),
+            ast::MathOp::Log1P => Ok(SollyaFn::Log1P),
+            ast::MathOp::Erf => Ok(SollyaFn::Erf),
+            ast::MathOp::ErfC => Ok(SollyaFn::ErfC),
+            ast::MathOp::Sqrt => Ok(SollyaFn::Sqrt),
+            _ => Err(()),
         }
     }
 }
