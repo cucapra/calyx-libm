@@ -1,0 +1,11 @@
+[package]
+name = "calyx-libm-ast-lowering"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+strum_macros.workspace = true
+
+calyx-libm-ast.workspace = true
+calyx-libm-hir.workspace = true
+calyx-libm-utils.workspace = true

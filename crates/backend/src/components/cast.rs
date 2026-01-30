@@ -6,7 +6,7 @@ use calyx_libm_utils::mangling::mangle;
 use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{ComponentBuilder, ComponentManager};
-use crate::backend::{Import, IrBuilder};
+use crate::{Import, IrBuilder};
 
 pub struct Cast<'a> {
     pub from: &'a Format,

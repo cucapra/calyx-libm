@@ -7,10 +7,10 @@ use std::process::ExitCode;
 use std::{io, iter};
 
 use calyx_libm_ast::{FPCoreParser, ast::Span};
+use calyx_libm_ast_lowering::lower_ast;
+use calyx_libm_backend::{ImportPaths, Program, build_library, compile_hir};
+use calyx_libm_hir_passes::run_passes;
 use calyx_libm_utils::{Diagnostic, Reporter};
-
-use calyx_libm::backend::{self, ImportPaths, Program};
-use calyx_libm::{lowering, passes};
 
 use opts::Opts;
 
@@ -77,12 +77,11 @@ fn main() -> ExitCode {
         }
     };
 
-    let Some(mut ctx) = lowering::lower_ast(defs, &config, &mut reporter)
-    else {
+    let Some(mut ctx) = lower_ast(defs, &config, &mut reporter) else {
         return ExitCode::FAILURE;
     };
 
-    if passes::run_passes(&mut ctx, &config, &mut reporter).is_err() {
+    if run_passes(&mut ctx, &config, &mut reporter).is_err() {
         return ExitCode::FAILURE;
     }
 
@@ -93,7 +92,7 @@ fn main() -> ExitCode {
         .chain(iter::once(Path::new(env!("CARGO_MANIFEST_DIR"))))
         .collect();
 
-    let (lib, paths) = match backend::build_library(&search_paths) {
+    let (lib, paths) = match build_library(&search_paths) {
         Ok(result) => result,
         Err(err) => {
             eprintln!("error: {err:?}");
@@ -102,8 +101,7 @@ fn main() -> ExitCode {
         }
     };
 
-    let Some(program) = backend::compile_hir(&ctx, &config, &mut reporter, lib)
-    else {
+    let Some(program) = compile_hir(&ctx, &config, &mut reporter, lib) else {
         return ExitCode::FAILURE;
     };
 

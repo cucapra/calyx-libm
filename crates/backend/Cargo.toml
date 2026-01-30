@@ -1,0 +1,19 @@
+[package]
+name = "calyx-libm-backend"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+calyx-frontend.workspace = true
+calyx-ir.workspace = true
+calyx-utils.workspace = true
+itertools.workspace = true
+malachite.workspace = true
+smallvec.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+
+calyx-libm-approx.workspace = true
+calyx-libm-hir.workspace = true
+calyx-libm-hir-passes.workspace = true
+calyx-libm-utils.workspace = true

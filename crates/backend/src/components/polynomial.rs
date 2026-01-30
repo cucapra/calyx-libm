@@ -9,7 +9,7 @@ use calyx_libm_utils::diagnostics::Diagnostic;
 use calyx_libm_utils::mangling::mangle;
 
 use super::{ComponentBuilder, ComponentManager, Horner, LookupTable};
-use crate::backend::IrBuilder;
+use crate::IrBuilder;
 
 pub struct PiecewisePoly<'a> {
     pub table: LookupTable<'a>,

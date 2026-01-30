@@ -1,6 +1,6 @@
 use calyx_libm_hir::{self as hir, Pool};
 
-use crate::passes::{Pass, PassContext, PassError, Visitor, visitor};
+use crate::{Pass, PassContext, PassError, Visitor, visitor};
 
 pub struct UnivariatePromotion;
 

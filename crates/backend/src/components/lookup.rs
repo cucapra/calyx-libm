@@ -13,7 +13,7 @@ use calyx_libm_utils::rational::FixedPoint;
 use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{ComponentBuilder, ComponentManager, Rom};
-use crate::backend::IrBuilder;
+use crate::IrBuilder;
 
 /// Packs a sequence of values into a single bit vector. The first element of
 /// the sequence occupies the most-significant position.

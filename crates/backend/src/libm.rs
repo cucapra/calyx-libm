@@ -6,12 +6,12 @@ use malachite::num::basic::traits::Zero;
 
 use calyx_libm_approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
 use calyx_libm_hir::{self as hir, Metadata, Pool, Visitor};
+use calyx_libm_hir_passes::analysis::RangeAnalysis;
 use calyx_libm_utils::interface::{Config, RangeAnalysis as AnalysisMode};
 use calyx_libm_utils::mangling::{Hash, Mangle};
 use calyx_libm_utils::{Diagnostic, Format, Reporter};
 
 use super::components::{self as comp, ComponentManager};
-use crate::passes::analysis::RangeAnalysis;
 
 pub struct Prototype {
     pub name: ir::Id,

@@ -4,7 +4,7 @@ use calyx_ir as ir;
 
 use calyx_libm_utils::Diagnostic;
 
-use crate::backend::stdlib::{Import, Importer};
+use crate::stdlib::{Import, Importer};
 
 pub trait PrimitiveBuilder {
     fn name(&self) -> ir::Id;

@@ -12,7 +12,7 @@ use calyx_libm_utils::mangling::mangle;
 use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{Cast, ComponentBuilder, ComponentManager};
-use crate::backend::{Import, IrBuilder};
+use crate::{Import, IrBuilder};
 
 const INLINE: ir::Attribute = ir::Attribute::Bool(ir::BoolAttr::Inline);
 
