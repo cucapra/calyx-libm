@@ -6,11 +6,11 @@ use malachite::num::basic::traits::Zero;
 
 use calyx_libm_approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
 use calyx_libm_hir::{self as hir, Metadata, Pool, Visitor};
+use calyx_libm_utils::interface::{Config, RangeAnalysis as AnalysisMode};
 use calyx_libm_utils::mangling::{Hash, Mangle};
 use calyx_libm_utils::{Diagnostic, Format, Reporter};
 
 use super::components::{self as comp, ComponentManager};
-use crate::opts::{Opts, RangeAnalysis as AnalysisMode};
 use crate::passes::analysis::RangeAnalysis;
 
 pub struct Prototype {
@@ -22,22 +22,20 @@ pub struct Prototype {
 
 pub fn compile_math_library(
     ctx: &hir::Context,
-    opts: &Opts,
+    cfg: &Config,
     reporter: &mut Reporter,
     cm: &mut ComponentManager,
     lib: &mut ir::LibrarySignatures,
 ) -> Option<HashMap<hir::ExprIdx, Prototype>> {
-    let ranges = match opts.range_analysis {
-        AnalysisMode::Interval => {
-            Some(RangeAnalysis::new(ctx, opts, reporter)?)
-        }
+    let ranges = match cfg.range_analysis {
+        AnalysisMode::Interval => Some(RangeAnalysis::new(ctx, cfg, reporter)?),
         AnalysisMode::None => None,
     };
 
     let mut builder = Builder {
         ctx,
         ranges: ranges.as_ref(),
-        format: &opts.format,
+        format: &cfg.format,
         reporter,
         cm,
         lib,

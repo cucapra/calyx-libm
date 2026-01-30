@@ -1,9 +1,7 @@
 use std::cell::{OnceCell, RefCell, RefMut};
 
 use calyx_libm_ast::ast;
-use calyx_libm_utils::Reporter;
-
-use crate::opts::Opts;
+use calyx_libm_utils::{Config, Reporter};
 
 pub trait Managed<Cache>
 where
@@ -43,7 +41,7 @@ where
 }
 
 pub struct PassManager<'pm, 'ast, 'src> {
-    opts: &'pm Opts,
+    cfg: &'pm Config,
     defs: &'ast [ast::FPCore],
     rpt: RefCell<&'pm mut Reporter<'src>>,
     cache: Cache<'ast>,
@@ -51,20 +49,20 @@ pub struct PassManager<'pm, 'ast, 'src> {
 
 impl<'pm, 'ast, 'src> PassManager<'pm, 'ast, 'src> {
     pub fn new(
-        opts: &'pm Opts,
+        cfg: &'pm Config,
         defs: &'ast [ast::FPCore],
         rpt: &'pm mut Reporter<'src>,
     ) -> PassManager<'pm, 'ast, 'src> {
         PassManager {
-            opts,
+            cfg,
             defs,
             rpt: RefCell::new(rpt),
             cache: Default::default(),
         }
     }
 
-    pub fn opts(&self) -> &'pm Opts {
-        self.opts
+    pub fn cfg(&self) -> &'pm Config {
+        self.cfg
     }
 
     pub fn ast(&self) -> &'ast [ast::FPCore] {

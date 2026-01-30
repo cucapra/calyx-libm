@@ -6,12 +6,11 @@ use itertools::Itertools;
 
 use calyx_libm_hir as hir;
 use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
-use calyx_libm_utils::{Diagnostic, Format, Reporter};
+use calyx_libm_utils::{Config, Diagnostic, Format, Reporter};
 
 use super::libm::{self, Prototype};
 use super::stdlib::{ImportPaths, ImportSet, Primitive};
 use super::{ComponentManager, IrBuilder};
-use crate::opts::Opts;
 
 pub struct Program {
     imports: ImportSet,
@@ -730,14 +729,14 @@ fn compile_definition(
 
 pub fn compile_hir(
     ctx: &hir::Context,
-    opts: &Opts,
+    cfg: &Config,
     reporter: &mut Reporter,
     mut lib: ir::LibrarySignatures,
 ) -> Option<Program> {
     let mut cm = ComponentManager::new();
 
     let math_lib =
-        libm::compile_math_library(ctx, opts, reporter, &mut cm, &mut lib)?;
+        libm::compile_math_library(ctx, cfg, reporter, &mut cm, &mut lib)?;
 
     let names = ctx
         .defs
@@ -748,7 +747,7 @@ pub fn compile_hir(
     let mut cc = CompileContext {
         ctx,
         math_lib: &math_lib,
-        format: &opts.format,
+        format: &cfg.format,
         cm: &mut cm,
         lib: &mut lib,
         reporter,

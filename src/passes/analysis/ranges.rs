@@ -6,10 +6,9 @@ use itertools::Itertools;
 use calyx_libm_hir::{self as hir, Metadata, Visitor, arena::SecondaryMap};
 use calyx_libm_utils::rational::Dyadic;
 use calyx_libm_utils::sollya::{self, ScriptError};
-use calyx_libm_utils::{Diagnostic, Format, Reporter};
+use calyx_libm_utils::{Config, Diagnostic, Format, Reporter};
 
 use super::Precondition;
-use crate::opts::Opts;
 
 const PROLOGUE: &str = "\
 dieonerrormode = on!;
@@ -42,7 +41,7 @@ pub struct RangeAnalysis {
 impl RangeAnalysis {
     pub fn new(
         ctx: &hir::Context,
-        opts: &Opts,
+        cfg: &Config,
         reporter: &mut Reporter,
     ) -> Option<RangeAnalysis> {
         let mut builder = Builder {
@@ -54,7 +53,7 @@ impl RangeAnalysis {
 
         builder.script.push_str(EPILOGUE);
 
-        let ranges = run_script(&builder.script, &opts.format)
+        let ranges = run_script(&builder.script, &cfg.format)
             .map_err(|err| {
                 builder.reporter.emit(&err.into_diagnostic(ctx));
             })

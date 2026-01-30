@@ -1,3 +1,5 @@
+mod opts;
+
 use std::borrow::Cow;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
@@ -8,8 +10,9 @@ use calyx_libm_ast::{FPCoreParser, ast::Span};
 use calyx_libm_utils::{Diagnostic, Reporter};
 
 use calyx_libm::backend::{self, ImportPaths, Program};
-use calyx_libm::opts::Opts;
 use calyx_libm::{lowering, passes};
+
+use opts::Opts;
 
 fn read_input(file: &Option<PathBuf>) -> io::Result<(Cow<'_, str>, String)> {
     if let Some(file) = file {
@@ -45,6 +48,7 @@ fn write_output(
 
 fn main() -> ExitCode {
     let opts = Opts::parse();
+    let config = opts.config();
 
     let (filename, src) = match read_input(&opts.file) {
         Ok(result) => result,
@@ -73,11 +77,12 @@ fn main() -> ExitCode {
         }
     };
 
-    let Some(mut ctx) = lowering::lower_ast(defs, &opts, &mut reporter) else {
+    let Some(mut ctx) = lowering::lower_ast(defs, &config, &mut reporter)
+    else {
         return ExitCode::FAILURE;
     };
 
-    if passes::run_passes(&mut ctx, &opts, &mut reporter).is_err() {
+    if passes::run_passes(&mut ctx, &config, &mut reporter).is_err() {
         return ExitCode::FAILURE;
     }
 
@@ -97,7 +102,7 @@ fn main() -> ExitCode {
         }
     };
 
-    let Some(program) = backend::compile_hir(&ctx, &opts, &mut reporter, lib)
+    let Some(program) = backend::compile_hir(&ctx, &config, &mut reporter, lib)
     else {
         return ExitCode::FAILURE;
     };

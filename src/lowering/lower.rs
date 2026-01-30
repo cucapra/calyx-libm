@@ -2,17 +2,16 @@ use std::collections::HashMap;
 
 use calyx_libm_ast::{ast, metadata as meta};
 use calyx_libm_hir::{self as hir, EntityList, PackedOption, Pool};
-use calyx_libm_utils::{Diagnostic, Reporter};
+use calyx_libm_utils::{Config, Diagnostic, Reporter};
 
 use super::analysis::{self as sem, PassManager};
-use crate::opts::Opts;
 
 pub fn lower_ast(
     defs: Vec<ast::FPCore>,
-    opts: &Opts,
+    cfg: &Config,
     reporter: &mut Reporter,
 ) -> Option<hir::Context> {
-    let pm = PassManager::new(opts, &defs, reporter);
+    let pm = PassManager::new(cfg, &defs, reporter);
 
     let _types: &sem::TypeCheck = pm.get_analysis()?;
     let bindings: &sem::NameResolution = pm.get_analysis()?;
