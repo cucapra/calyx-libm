@@ -153,12 +153,13 @@ impl Diagnostic {
     }
 
     /// Formats a [`ScriptError`] arising during compilation of the operator
-    /// located at `span`.
+    /// `op` located at `span`.
     pub fn from_sollya_and_span<S: Into<Range<usize>>>(
         err: ScriptError,
+        op: &str,
         span: S,
     ) -> Diagnostic {
         Diagnostic::from_sollya(err)
-            .with_secondary(span, "while compiling this operator")
+            .with_secondary(span, format!("while compiling operator `{}`", op))
     }
 }

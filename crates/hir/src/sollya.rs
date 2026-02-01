@@ -33,6 +33,14 @@ impl SollyaBinOp {
             SollyaBinOp::Pow => "^",
         }
     }
+
+    fn precedence(self) -> (u8, u8) {
+        match self {
+            SollyaBinOp::Pow => (0, 1),
+            SollyaBinOp::Mul | SollyaBinOp::Div => (5, 4),
+            SollyaBinOp::Add | SollyaBinOp::Sub => (7, 6),
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -115,61 +123,181 @@ impl idx::SollyaIdx {
         }
     }
 
-    /// Returns an adapter for formatting `self` as a Sollya expression in the
-    /// free variable.
-    pub fn sollya(self, ctx: &Context) -> impl fmt::Display {
-        Printer { ctx, idx: self }
-    }
-}
+    /// Returns an adapter for formatting `self` as a pretty-printed function.
+    pub fn pretty(self, ctx: &Context) -> impl fmt::Display {
+        struct Pretty<'ctx> {
+            ctx: &'ctx Context,
+            idx: idx::SollyaIdx,
+        }
 
-struct Printer<'ctx> {
-    ctx: &'ctx Context,
-    idx: idx::SollyaIdx,
-}
-
-impl fmt::Display for Printer<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut stack = vec![(self.idx, 0u32)];
-
-        while let Some((idx, state)) = stack.pop() {
-            match self.ctx[idx] {
-                SollyaExpr::Variable => write!(f, "_x_")?,
-                SollyaExpr::Number(num) => {
-                    write!(f, "({})", self.ctx[num].value)?;
-                }
-                SollyaExpr::Neg(arg) => {
-                    write!(f, "-")?;
-
-                    stack.push((arg, 0));
-                }
-                SollyaExpr::Binary(op, lhs, rhs) => {
-                    if state == 0 {
-                        write!(f, "(")?;
-
-                        stack.push((idx, state + 1));
-                        stack.push((lhs, 0));
-                    } else if state == 1 {
-                        write!(f, "{}", op.as_str())?;
-
-                        stack.push((idx, state + 1));
-                        stack.push((rhs, 0));
-                    } else {
-                        write!(f, ")")?;
-                    }
-                }
-                SollyaExpr::Call(op, arg) => {
-                    if state == 0 {
-                        write!(f, "{}(", op.as_str())?;
-
-                        stack.push((idx, state + 1));
-                        stack.push((arg, 0));
-                    } else {
-                        write!(f, ")")?;
-                    }
+        impl fmt::Display for Pretty<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                if let Some(name) = self.idx.name(self.ctx) {
+                    write!(f, "{name}")
+                } else {
+                    Printer::write(self.idx, self.ctx, "x", f)
                 }
             }
         }
 
-        Ok(())
+        Pretty { ctx, idx: self }
+    }
+
+    /// Returns an adapter for formatting `self` as a Sollya expression in the
+    /// free variable.
+    pub fn sollya(self, ctx: &Context) -> impl fmt::Display {
+        struct Sollya<'ctx> {
+            ctx: &'ctx Context,
+            idx: idx::SollyaIdx,
+        }
+
+        impl fmt::Display for Sollya<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                Printer::write(self.idx, self.ctx, "_x_", f)
+            }
+        }
+
+        Sollya { ctx, idx: self }
+    }
+}
+
+struct Printer<'a, 'b> {
+    ctx: &'a Context,
+    var: &'a str,
+    f: &'a mut fmt::Formatter<'b>,
+}
+
+impl Printer<'_, '_> {
+    fn write(
+        idx: idx::SollyaIdx,
+        ctx: &Context,
+        var: &str,
+        f: &mut fmt::Formatter,
+    ) -> fmt::Result {
+        Printer { ctx, var, f }.pretty(idx, u8::MAX)
+    }
+
+    fn pretty(&mut self, idx: idx::SollyaIdx, parent: u8) -> fmt::Result {
+        match self.ctx[idx] {
+            SollyaExpr::Variable => {
+                write!(self.f, "{}", self.var)
+            }
+            SollyaExpr::Number(num) => {
+                const DIV_PRECEDENCE: u8 = 5;
+
+                let value = &self.ctx[num].value;
+
+                if parent < DIV_PRECEDENCE {
+                    write!(self.f, "({value})")
+                } else {
+                    write!(self.f, "{value}")
+                }
+            }
+            SollyaExpr::Neg(arg) => {
+                const NEG_LP: u8 = 3;
+                const NEG_RP: u8 = 2;
+
+                if parent < NEG_LP {
+                    write!(self.f, "(-")?;
+                    self.pretty(arg, NEG_RP)?;
+                    write!(self.f, ")")
+                } else {
+                    write!(self.f, "-")?;
+                    self.pretty(arg, NEG_RP)
+                }
+            }
+            SollyaExpr::Binary(op, lhs, rhs) => {
+                let (lp, rp) = op.precedence();
+                let max = rp | 1; // = max(lp, rp)
+
+                if parent < max {
+                    write!(self.f, "(")?;
+                }
+
+                self.pretty(lhs, lp)?;
+
+                if op == SollyaBinOp::Pow {
+                    write!(self.f, "^")?;
+                } else {
+                    write!(self.f, " {} ", op.as_str())?;
+                }
+
+                self.pretty(rhs, rp)?;
+
+                if parent < max {
+                    write!(self.f, ")")?;
+                }
+
+                Ok(())
+            }
+            SollyaExpr::Call(op, arg) => {
+                write!(self.f, "{}(", op.as_str())?;
+                self.pretty(arg, u8::MAX)?;
+                write!(self.f, ")")
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use SollyaBinOp::*;
+    use SollyaExpr::*;
+
+    #[test]
+    fn precedence() {
+        let mut ctx = Context::new();
+
+        let var = ctx.ops.intern(Variable);
+        let add = ctx.ops.intern(Binary(Add, var, var));
+        let pow = ctx.ops.intern(Binary(Pow, var, var));
+        let neg_add = ctx.ops.intern(Neg(add));
+        let neg_pow = ctx.ops.intern(Neg(pow));
+        let mul = ctx.ops.intern(Binary(Mul, neg_add, neg_pow));
+
+        assert_eq!(mul.pretty(&ctx).to_string(), "-(x + x) * -x^x");
+
+        let num = ctx.numbers.push(crate::Number {
+            value: crate::Rational::from_unsigneds::<u32>(1, 2),
+            span: crate::Span::new(0, 3),
+        });
+
+        let num = ctx.ops.intern(Number(num));
+        let add_num = ctx.ops.intern(Binary(Add, var, num));
+        let pow_num = ctx.ops.intern(Binary(Pow, var, num));
+
+        assert_eq!(add_num.pretty(&ctx).to_string(), "x + 1/2");
+        assert_eq!(pow_num.pretty(&ctx).to_string(), "x^(1/2)");
+
+        let call = ctx.ops.intern(Call(SollyaFn::Sqrt, add));
+
+        assert_eq!(call.pretty(&ctx).to_string(), "sqrt(x + x)");
+    }
+
+    #[test]
+    fn associativity() {
+        let mut ctx = Context::new();
+
+        let var = ctx.ops.intern(Variable);
+        let neg = ctx.ops.intern(Neg(var));
+        let double_neg = ctx.ops.intern(Neg(neg));
+
+        assert_eq!(double_neg.pretty(&ctx).to_string(), "-(-x)");
+
+        let sub = ctx.ops.intern(Binary(Sub, var, var));
+        let sub_left = ctx.ops.intern(Binary(Sub, sub, var));
+        let sub_right = ctx.ops.intern(Binary(Sub, var, sub));
+
+        assert_eq!(sub_left.pretty(&ctx).to_string(), "x - x - x");
+        assert_eq!(sub_right.pretty(&ctx).to_string(), "x - (x - x)");
+
+        let pow = ctx.ops.intern(Binary(Pow, var, var));
+        let pow_left = ctx.ops.intern(Binary(Pow, pow, var));
+        let pow_right = ctx.ops.intern(Binary(Pow, var, pow));
+
+        assert_eq!(pow_left.pretty(&ctx).to_string(), "(x^x)^x");
+        assert_eq!(pow_right.pretty(&ctx).to_string(), "x^x^x");
     }
 }

@@ -121,7 +121,10 @@ impl<'a> Builder<'a, '_> {
                 self.build_poly(op, &domain, degree, error)
             }
             None => Err(Diagnostic::error()
-                .with_message("operator with unspecified implementation")
+                .with_message(format!(
+                    "no implementation specified for operator `{}`",
+                    op.pretty,
+                ))
                 .with_primary(op.span, "no implementation specified")
                 .with_note("help: add a `:calyx-impl` annotation")),
         }
@@ -147,7 +150,7 @@ impl<'a> Builder<'a, '_> {
             })
             .ok_or_else(|| {
                 Diagnostic::error()
-                    .with_message("operator with unknown domain")
+                    .with_message(format!("operator `{}` has unknown domain", op.pretty))
                     .with_primary(op.span, "unknown domain")
                     .with_note("help: add a `:calyx-domain` annotation or enable range analysis")
             })?;
@@ -166,7 +169,7 @@ impl<'a> Builder<'a, '_> {
         let values =
             &remez::build_table(&op.sollya, 0, domain, size, self.format.scale)
                 .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, op.span)
+                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
                 })?;
 
         let table_spec = LutSpec {
@@ -185,10 +188,15 @@ impl<'a> Builder<'a, '_> {
             data,
             format: self.format,
             spec: addr_spec,
-            span: op.span,
         };
 
-        let (name, signature) = self.cm.get(&builder, self.lib)?;
+        let (name, signature) =
+            self.cm.get(&builder, self.lib).map_err(|err| {
+                err.with_secondary(
+                    op.span,
+                    format!("while compiling operator `{}`", op.pretty),
+                )
+            })?;
 
         Ok(Prototype {
             name,
@@ -212,7 +220,7 @@ impl<'a> Builder<'a, '_> {
         let size =
             faithful::segment_domain(f, degree, left, right, scale, error)
                 .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, op.span)
+                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
                 })?;
 
         let (addr_spec, domain) = &domain.widen(op, self.format, size)?;
@@ -220,7 +228,7 @@ impl<'a> Builder<'a, '_> {
         let approx =
             faithful::build_table(f, degree, domain, size, scale, error)
                 .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, op.span)
+                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
                 })?;
 
         let datapath = Datapath::from_approx(&approx, degree, scale, error);
@@ -245,12 +253,17 @@ impl<'a> Builder<'a, '_> {
                 data,
                 format: self.format,
                 spec: addr_spec,
-                span: op.span,
             },
             spec: datapath,
         };
 
-        let (name, signature) = self.cm.get(&builder, self.lib)?;
+        let (name, signature) =
+            self.cm.get(&builder, self.lib).map_err(|err| {
+                err.with_secondary(
+                    op.span,
+                    format!("while compiling operator `{}`", op.pretty),
+                )
+            })?;
 
         Ok(Prototype {
             name,
@@ -293,7 +306,10 @@ impl DomainHint<'_> {
         AddressSpec::from_domain_hint(self.left, self.right, format, size)
             .map_err(|err| {
                 Diagnostic::error()
-                    .with_message("operator with infeasible domain")
+                    .with_message(format!(
+                        "operator `{}` has infeasible domain",
+                        op.pretty,
+                    ))
                     .with_primary(op.span, "operator has infeasible domain")
                     .with_note(err.to_string())
             })
@@ -302,6 +318,7 @@ impl DomainHint<'_> {
 
 struct Operator {
     sollya: String,
+    pretty: String,
     prefix_hint: ir::Id,
     span: hir::Span,
 }
@@ -314,6 +331,7 @@ impl Operator {
     ) -> Operator {
         Operator {
             sollya: idx.sollya(ctx).to_string(),
+            pretty: idx.pretty(ctx).to_string(),
             prefix_hint: idx.name(ctx).unwrap_or("f").into(),
             span: op.span,
         }

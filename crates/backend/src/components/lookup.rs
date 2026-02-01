@@ -7,7 +7,6 @@ use malachite::num::basic::traits::Zero;
 use malachite::{Natural, Rational};
 
 use calyx_libm_approx::AddressSpec;
-use calyx_libm_hir::Span;
 use calyx_libm_utils::mangling::{Mangle, mangle};
 use calyx_libm_utils::rational::FixedPoint;
 use calyx_libm_utils::{Diagnostic, Format};
@@ -46,7 +45,6 @@ pub struct LookupTable<'a> {
     pub data: TableData<'a>,
     pub format: &'a Format,
     pub spec: &'a AddressSpec,
-    pub span: Span,
 }
 
 impl LookupTable<'_> {
@@ -58,7 +56,6 @@ impl LookupTable<'_> {
         let diagnostic = |value| {
             Diagnostic::error()
                 .with_message("implementation error")
-                .with_secondary(self.span, "while compiling this operator")
                 .with_note(format!(
                     "generated constant {value} overflows the target format"
                 ))
