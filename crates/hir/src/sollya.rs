@@ -183,11 +183,20 @@ impl Printer<'_, '_> {
                 write!(self.f, "{}", self.var)
             }
             SollyaExpr::Number(num) => {
+                const NEG_PRECEDENCE: u8 = 3;
                 const DIV_PRECEDENCE: u8 = 5;
 
                 let value = &self.ctx[num].value;
 
-                if parent < DIV_PRECEDENCE {
+                let precedence = if *value.denominator_ref() != 1u32 {
+                    DIV_PRECEDENCE
+                } else if *value < 0u32 {
+                    NEG_PRECEDENCE
+                } else {
+                    0
+                };
+
+                if parent < precedence {
                     write!(self.f, "({value})")
                 } else {
                     write!(self.f, "{value}")
@@ -299,5 +308,29 @@ mod tests {
 
         assert_eq!(pow_left.pretty(&ctx).to_string(), "(x^x)^x");
         assert_eq!(pow_right.pretty(&ctx).to_string(), "x^x^x");
+    }
+
+    #[test]
+    fn literals() {
+        let mut ctx = Context::new();
+
+        let pos = ctx.numbers.push(crate::Number {
+            value: crate::Rational::from(2),
+            span: crate::Span::new(0, 1),
+        });
+
+        let neg = ctx.numbers.push(crate::Number {
+            value: crate::Rational::from(-2),
+            span: crate::Span::new(0, 2),
+        });
+
+        let var = ctx.ops.intern(Variable);
+        let pos = ctx.ops.intern(Number(pos));
+        let neg = ctx.ops.intern(Number(neg));
+        let pow_pos = ctx.ops.intern(Binary(Pow, pos, var));
+        let pow_neg = ctx.ops.intern(Binary(Pow, neg, var));
+
+        assert_eq!(pow_pos.pretty(&ctx).to_string(), "2^x");
+        assert_eq!(pow_neg.pretty(&ctx).to_string(), "(-2)^x");
     }
 }
