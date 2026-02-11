@@ -4,7 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-calyx-utils.workspace = true
 malachite.workspace = true
 pest.workspace = true
 pest_derive.workspace = true
@@ -12,3 +11,4 @@ pest_consume.workspace = true
 pretty = { workspace = true, optional = true }
 strum.workspace = true
 strum_macros.workspace = true
+symbol_table.workspace = true

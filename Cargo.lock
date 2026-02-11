@@ -145,7 +145,6 @@ dependencies = [
 name = "calyx-libm-ast"
 version = "0.1.0"
 dependencies = [
- "calyx-utils",
  "malachite",
  "pest",
  "pest_consume",
@@ -153,6 +152,7 @@ dependencies = [
  "pretty",
  "strum 0.27.1",
  "strum_macros 0.27.1",
+ "symbol_table",
 ]
 
 [[package]]

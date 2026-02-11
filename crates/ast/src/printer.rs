@@ -380,7 +380,7 @@ impl Symbol {
     where
         D: DocAllocator<'a, A>,
     {
-        allocator.text(self.id.id.as_str())
+        allocator.text(self.id.as_str())
     }
 }
 
@@ -393,7 +393,7 @@ impl Operation {
             OpKind::Math(op) => op.into(),
             OpKind::Test(op) => op.into(),
             OpKind::Tensor(op) => op.into(),
-            OpKind::FPCore(op) => op.id.as_str(),
+            OpKind::FPCore(op) => op.into(),
         })
     }
 }

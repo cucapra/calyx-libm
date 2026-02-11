@@ -3,11 +3,11 @@
 use std::ops::Range;
 use std::sync::atomic::{AtomicU32, Ordering};
 
-pub use calyx_utils::Id;
-
 pub use super::constants::{MathConst, MathOp, TensorOp, TestOp};
 pub use super::literals::Rational;
 pub use super::metadata::PropKind;
+
+pub type Id = symbol_table::GlobalSymbol;
 
 #[derive(Debug)]
 pub struct FPCore {

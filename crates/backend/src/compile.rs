@@ -617,26 +617,26 @@ impl Builder<'_, '_, '_> {
 
 struct NameGenerator {
     generated: usize,
-    used: HashSet<ir::Id>,
+    used: HashSet<hir::Id>,
 }
 
 impl NameGenerator {
-    fn new(used: HashSet<ir::Id>) -> NameGenerator {
+    fn new(used: HashSet<hir::Id>) -> NameGenerator {
         NameGenerator { generated: 0, used }
     }
 
     fn next(&mut self) -> ir::Id {
         loop {
-            let name = if self.generated == 0 {
-                ir::Id::new("main")
+            let id = if self.generated == 0 {
+                hir::Id::new("main")
             } else {
-                ir::Id::new(format!("main{}", self.generated - 1))
+                hir::Id::new(format!("main{}", self.generated - 1))
             };
 
             self.generated += 1;
 
-            if !self.used.contains(&name) {
-                break name;
+            if !self.used.contains(&id) {
+                break ir::Id { id };
             }
         }
     }
@@ -663,14 +663,16 @@ fn compile_definition(
     let name = def
         .name
         .as_ref()
-        .map_or_else(|| cc.names.next(), |sym| sym.id);
+        .map_or_else(|| cc.names.next(), |sym| ir::Id { id: sym.id });
 
     let ports = || {
         def.args
             .into_iter()
             .map(|arg| {
                 ir::PortDef::new(
-                    cc.ctx[arg].var.id,
+                    ir::Id {
+                        id: cc.ctx[arg].var.id,
+                    },
                     u64::from(cc.format.width),
                     ir::Direction::Input,
                     Default::default(),
@@ -716,7 +718,7 @@ fn compile_definition(
     if let Some(sym) = &def.name {
         let prototype = Prototype {
             name: component.name,
-            prefix_hint: sym.id,
+            prefix_hint: ir::Id { id: sym.id },
             signature: ports(),
             is_comb: component.is_comb,
         };

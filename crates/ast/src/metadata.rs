@@ -63,7 +63,7 @@ impl PropKind {
             PropKind::Example(_) => "example",
             PropKind::CalyxDomain(_) => "calyx-domain",
             PropKind::CalyxImpl(_) => "calyx-impl",
-            PropKind::Unknown(name, _) => name.id.as_ref(),
+            PropKind::Unknown(name, _) => name.id.as_str(),
         }
     }
 }
