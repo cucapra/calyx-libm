@@ -126,7 +126,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
     ) -> Result<hir::ExprIdx, LoweringError> {
         let kind = match &expr.kind {
             ast::ExprKind::Num(number) => {
-                hir::ExprKind::Num(self.ctx.numbers.push(number.clone()))
+                hir::ExprKind::Num(self.lower_number(number))
             }
             ast::ExprKind::Const(value) => hir::ExprKind::Const(*value),
             ast::ExprKind::Id(_) => {
@@ -151,7 +151,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
 
                 let op = hir::Operation {
                     kind,
-                    span: op.span,
+                    span: hir::Span::from(op.span),
                 };
 
                 let args = self.lower_expressions(args)?;
@@ -239,7 +239,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
         let lowered = hir::Expression {
             kind,
             scope: self.parent,
-            span: expr.span,
+            span: hir::Span::from(expr.span),
         };
 
         Ok(self.ctx.exprs.push(lowered))
@@ -303,6 +303,15 @@ impl<'ast> Builder<'_, 'ast, '_> {
         Ok(list)
     }
 
+    fn lower_number(&mut self, number: &ast::Number) -> hir::NumIdx {
+        let lowered = hir::Number {
+            value: number.value.clone(),
+            span: hir::Span::from(number.span),
+        };
+
+        self.ctx.numbers.push(lowered)
+    }
+
     fn lower_math_operation(
         &mut self,
         op: &ast::Operation,
@@ -336,8 +345,8 @@ impl<'ast> Builder<'_, 'ast, '_> {
                 hir::Property::Pre(self.lower_expression(expr)?)
             }
             ast::PropKind::CalyxDomain(domain) => {
-                let left = self.ctx.numbers.push(domain.left.clone());
-                let right = self.ctx.numbers.push(domain.right.clone());
+                let left = self.lower_number(&domain.left);
+                let right = self.lower_number(&domain.right);
 
                 hir::Property::Domain(hir::Domain { left, right })
             }
@@ -349,9 +358,11 @@ impl<'ast> Builder<'_, 'ast, '_> {
                     meta::CalyxImpl::Poly { degree, ref error } => {
                         hir::Strategy::Poly {
                             degree,
-                            error: PackedOption::from(error.as_ref().map(
-                                |error| self.ctx.numbers.push(error.clone()),
-                            )),
+                            error: PackedOption::from(
+                                error
+                                    .as_ref()
+                                    .map(|error| self.lower_number(error)),
+                            ),
                         }
                     }
                 };

@@ -40,6 +40,18 @@ impl Diagnostic {
         self
     }
 
+    pub fn try_with_primary<S, L>(self, span: S, label: L) -> Diagnostic
+    where
+        S: Into<Option<Range<usize>>>,
+        L: Into<String>,
+    {
+        if let Some(span) = span.into() {
+            self.with_primary(span, label)
+        } else {
+            self
+        }
+    }
+
     pub fn with_secondary<S, L>(mut self, span: S, label: L) -> Diagnostic
     where
         S: Into<Range<usize>>,
@@ -50,6 +62,18 @@ impl Diagnostic {
             .push(Label::secondary((), span).with_message(label));
 
         self
+    }
+
+    pub fn try_with_secondary<S, L>(self, span: S, label: L) -> Diagnostic
+    where
+        S: Into<Option<Range<usize>>>,
+        L: Into<String>,
+    {
+        if let Some(span) = span.into() {
+            self.with_secondary(span, label)
+        } else {
+            self
+        }
     }
 
     pub fn with_note<N: Into<String>>(mut self, note: N) -> Diagnostic {

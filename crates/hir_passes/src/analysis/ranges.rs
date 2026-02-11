@@ -126,10 +126,13 @@ impl AnalysisError {
             AnalysisError::Script(err) => Diagnostic::from_sollya(err),
             AnalysisError::Unbounded(idx) => Diagnostic::error()
                 .with_message("couldn't bound ranges")
-                .with_primary(ctx[idx].span, "expression has unbounded range"),
+                .try_with_primary(
+                    ctx[idx].span,
+                    "expression has unbounded range",
+                ),
             AnalysisError::Undefined(idx) => Diagnostic::error()
                 .with_message("couldn't bound ranges")
-                .with_primary(ctx[idx].span, "expression not total"),
+                .try_with_primary(ctx[idx].span, "expression not total"),
         }
     }
 }
@@ -312,7 +315,7 @@ impl Visitor for Builder<'_, '_> {
                 self.reporter.emit(
                     &Diagnostic::error()
                         .with_message("unsupported numeric constant")
-                        .with_primary(expr.span, "unsupported constant"),
+                        .try_with_primary(expr.span, "unsupported constant"),
                 );
 
                 return Err(BuilderError);
@@ -429,7 +432,7 @@ impl Visitor for Builder<'_, '_> {
                 self.reporter.emit(
                     &Diagnostic::error()
                         .with_message("range analysis does not support loops")
-                        .with_primary(expr.span, "unsupported expression"),
+                        .try_with_primary(expr.span, "unsupported expression"),
                 );
 
                 return Err(BuilderError);

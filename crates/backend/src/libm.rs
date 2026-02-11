@@ -125,7 +125,7 @@ impl<'a> Builder<'a, '_> {
                     "no implementation specified for operator `{}`",
                     op.pretty,
                 ))
-                .with_primary(op.span, "no implementation specified")
+                .try_with_primary(op.span, "no implementation specified")
                 .with_note("help: add a `:calyx-impl` annotation")),
         }
     }
@@ -151,7 +151,7 @@ impl<'a> Builder<'a, '_> {
             .ok_or_else(|| {
                 Diagnostic::error()
                     .with_message(format!("operator `{}` has unknown domain", op.pretty))
-                    .with_primary(op.span, "unknown domain")
+                    .try_with_primary(op.span, "unknown domain")
                     .with_note("help: add a `:calyx-domain` annotation or enable range analysis")
             })?;
 
@@ -192,7 +192,7 @@ impl<'a> Builder<'a, '_> {
 
         let (name, signature) =
             self.cm.get(&builder, self.lib).map_err(|err| {
-                err.with_secondary(
+                err.try_with_secondary(
                     op.span,
                     format!("while compiling operator `{}`", op.pretty),
                 )
@@ -259,7 +259,7 @@ impl<'a> Builder<'a, '_> {
 
         let (name, signature) =
             self.cm.get(&builder, self.lib).map_err(|err| {
-                err.with_secondary(
+                err.try_with_secondary(
                     op.span,
                     format!("while compiling operator `{}`", op.pretty),
                 )
@@ -310,7 +310,7 @@ impl DomainHint<'_> {
                         "operator `{}` has infeasible domain",
                         op.pretty,
                     ))
-                    .with_primary(op.span, "operator has infeasible domain")
+                    .try_with_primary(op.span, "operator has infeasible domain")
                     .with_note(err.to_string())
             })
     }

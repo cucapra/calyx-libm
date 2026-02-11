@@ -31,7 +31,7 @@ impl<'ctx> Precondition<'ctx> {
             reporter.emit(
                 &Diagnostic::error()
                     .with_message("unsupported precondition")
-                    .with_primary(pred.span, "not allowed here"),
+                    .try_with_primary(pred.span, "not allowed here"),
             );
 
             Err(UnsupportedPredicateError)

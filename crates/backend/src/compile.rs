@@ -79,7 +79,10 @@ impl Builder<'_, '_, '_> {
             self.reporter.emit(
                 &Diagnostic::error()
                     .with_message("overflow")
-                    .with_primary(number.span, "value overflows target format"),
+                    .try_with_primary(
+                        number.span,
+                        "value overflows target format",
+                    ),
             );
 
             return None;
@@ -110,7 +113,7 @@ impl Builder<'_, '_, '_> {
                 self.reporter.emit(
                     &Diagnostic::error()
                         .with_message("unsupported numeric constant")
-                        .with_primary(span, "unsupported constant"),
+                        .try_with_primary(span, "unsupported constant"),
                 );
 
                 None
@@ -315,7 +318,7 @@ impl Builder<'_, '_, '_> {
             self.reporter.emit(
                 &Diagnostic::error()
                     .with_message("unsupported operation")
-                    .with_primary(op.span, "unsupported operator"),
+                    .try_with_primary(op.span, "unsupported operator"),
             )
         };
 

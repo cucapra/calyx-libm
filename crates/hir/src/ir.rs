@@ -1,11 +1,11 @@
+use std::ops::Range;
+
 use calyx_libm_ast::ast;
 
 use super::arena::{EntityList, PackedOption};
 use super::index as idx;
 
-pub use ast::{
-    Constant, Id, MathConst, Number, Rational, Span, Symbol, TestOp,
-};
+pub use ast::{Constant, Id, MathConst, Rational, Symbol, TestOp};
 
 pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
 
@@ -37,6 +37,12 @@ pub struct Expression {
     pub span: Span,
 }
 
+#[derive(Clone)]
+pub struct Number {
+    pub value: Rational,
+    pub span: Span,
+}
+
 #[derive(Clone, Copy)]
 pub enum VarKind {
     Arg(idx::ArgIdx),
@@ -56,6 +62,26 @@ pub enum ArithOp {
     Abs,
     Max,
     Min,
+}
+
+impl TryFrom<ast::MathOp> for ArithOp {
+    type Error = ();
+
+    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
+        match value {
+            ast::MathOp::Add => Ok(ArithOp::Add),
+            ast::MathOp::Sub => Ok(ArithOp::Sub),
+            ast::MathOp::Mul => Ok(ArithOp::Mul),
+            ast::MathOp::Div => Ok(ArithOp::Div),
+            ast::MathOp::Neg => Ok(ArithOp::Neg),
+            ast::MathOp::Pow => Ok(ArithOp::Pow),
+            ast::MathOp::Sqrt => Ok(ArithOp::Sqrt),
+            ast::MathOp::FAbs => Ok(ArithOp::Abs),
+            ast::MathOp::FMax => Ok(ArithOp::Max),
+            ast::MathOp::FMin => Ok(ArithOp::Min),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -124,22 +150,30 @@ pub enum Strategy {
     },
 }
 
-impl TryFrom<ast::MathOp> for ArithOp {
-    type Error = ();
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Span(usize, usize);
 
-    fn try_from(value: ast::MathOp) -> Result<Self, Self::Error> {
-        match value {
-            ast::MathOp::Add => Ok(ArithOp::Add),
-            ast::MathOp::Sub => Ok(ArithOp::Sub),
-            ast::MathOp::Mul => Ok(ArithOp::Mul),
-            ast::MathOp::Div => Ok(ArithOp::Div),
-            ast::MathOp::Neg => Ok(ArithOp::Neg),
-            ast::MathOp::Pow => Ok(ArithOp::Pow),
-            ast::MathOp::Sqrt => Ok(ArithOp::Sqrt),
-            ast::MathOp::FAbs => Ok(ArithOp::Abs),
-            ast::MathOp::FMax => Ok(ArithOp::Max),
-            ast::MathOp::FMin => Ok(ArithOp::Min),
-            _ => Err(()),
-        }
+impl Span {
+    pub const NONE: Span = Span(usize::MAX, usize::MAX);
+
+    pub fn new(start: usize, end: usize) -> Span {
+        Span(start, end)
+    }
+}
+
+impl From<ast::Span> for Span {
+    fn from(value: ast::Span) -> Self {
+        let range = Range::from(value);
+
+        Span(range.start, range.end)
+    }
+}
+
+impl From<Span> for Option<Range<usize>> {
+    fn from(value: Span) -> Self {
+        (value != Span::NONE).then_some(Range {
+            start: value.0,
+            end: value.1,
+        })
     }
 }
