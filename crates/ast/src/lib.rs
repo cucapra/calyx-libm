@@ -1,6 +1,6 @@
 //! FPCore front end.
 
-pub mod ast;
+mod ast;
 mod constants;
 mod literals;
 pub mod metadata;
@@ -10,6 +10,7 @@ pub mod visitor;
 #[cfg(feature = "pretty")]
 mod printer;
 
+pub use ast::*;
 pub use parser::FPCoreParser;
 pub use visitor::Visitor;
 

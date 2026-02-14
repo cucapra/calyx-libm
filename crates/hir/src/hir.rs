@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use calyx_libm_ast::ast;
+use calyx_libm_ast as ast;
 
 use super::arena::{EntityList, PackedOption};
 use super::index as idx;

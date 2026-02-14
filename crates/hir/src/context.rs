@@ -3,18 +3,18 @@ use std::ops::{Index, IndexMut};
 
 use super::arena::{EntityList, ListPool, PackedOption, PrimaryMap};
 use super::interned::Interned;
-use super::{index as idx, ir};
+use super::{hir, index as idx};
 
 #[derive(Default)]
 pub struct Context {
-    pub defs: PrimaryMap<idx::DefIdx, ir::Definition>,
-    pub args: PrimaryMap<idx::ArgIdx, ir::Argument>,
-    pub exprs: PrimaryMap<idx::ExprIdx, ir::Expression>,
-    pub numbers: PrimaryMap<idx::NumIdx, ir::Number>,
+    pub defs: PrimaryMap<idx::DefIdx, hir::Definition>,
+    pub args: PrimaryMap<idx::ArgIdx, hir::Argument>,
+    pub exprs: PrimaryMap<idx::ExprIdx, hir::Expression>,
+    pub numbers: PrimaryMap<idx::NumIdx, hir::Number>,
     pub vars: PrimaryMap<idx::VarIdx, ()>,
-    pub writes: PrimaryMap<idx::WriteIdx, ir::Write>,
-    pub ops: Interned<idx::SollyaIdx, ir::SollyaExpr>,
-    pub scopes: PrimaryMap<idx::ScopeIdx, ir::Scope>,
+    pub writes: PrimaryMap<idx::WriteIdx, hir::Write>,
+    pub ops: Interned<idx::SollyaIdx, hir::SollyaExpr>,
+    pub scopes: PrimaryMap<idx::ScopeIdx, hir::Scope>,
 
     pub expr_lists: ListPool<idx::ExprIdx>,
     pub write_lists: ListPool<idx::WriteIdx>,
@@ -46,14 +46,14 @@ macro_rules! index_impl {
     };
 }
 
-index_impl!(defs, idx::DefIdx, ir::Definition);
-index_impl!(args, idx::ArgIdx, ir::Argument);
-index_impl!(exprs, idx::ExprIdx, ir::Expression);
-index_impl!(numbers, idx::NumIdx, ir::Number);
-index_impl!(writes, idx::WriteIdx, ir::Write);
+index_impl!(defs, idx::DefIdx, hir::Definition);
+index_impl!(args, idx::ArgIdx, hir::Argument);
+index_impl!(exprs, idx::ExprIdx, hir::Expression);
+index_impl!(numbers, idx::NumIdx, hir::Number);
+index_impl!(writes, idx::WriteIdx, hir::Write);
 
 impl Index<idx::SollyaIdx> for Context {
-    type Output = ir::SollyaExpr;
+    type Output = hir::SollyaExpr;
 
     #[inline]
     fn index(&self, index: idx::SollyaIdx) -> &Self::Output {
@@ -127,7 +127,7 @@ pub struct Props<'ctx> {
 }
 
 impl<'ctx> Iterator for Props<'ctx> {
-    type Item = &'ctx ir::Property;
+    type Item = &'ctx hir::Property;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(scope) = self.idx.expand() {
@@ -155,6 +155,6 @@ macro_rules! scope_impl {
     };
 }
 
-scope_impl!(ir::Definition);
-scope_impl!(ir::Argument);
-scope_impl!(ir::Expression);
+scope_impl!(hir::Definition);
+scope_impl!(hir::Argument);
+scope_impl!(hir::Expression);

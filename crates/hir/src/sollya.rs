@@ -1,6 +1,6 @@
 use std::fmt;
 
-use calyx_libm_ast::ast;
+use calyx_libm_ast as ast;
 
 use super::Context;
 use super::index as idx;

@@ -3,7 +3,7 @@ use std::ops::Index;
 
 use strum_macros::Display;
 
-use calyx_libm_ast::ast;
+use calyx_libm_ast as ast;
 use calyx_libm_utils::{Diagnostic, Reporter};
 
 use super::bindings::{Binding, NameResolution};

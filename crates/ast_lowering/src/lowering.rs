@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use calyx_libm_ast::{ast, metadata as meta};
+use calyx_libm_ast::{self as ast, metadata as meta};
 use calyx_libm_hir::{self as hir, EntityList, PackedOption, Pool};
 use calyx_libm_utils::{Config, Diagnostic, Reporter};
 

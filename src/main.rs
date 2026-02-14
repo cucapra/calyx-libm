@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{io, iter};
 
-use calyx_libm_ast::{FPCoreParser, ast::Span};
+use calyx_libm_ast::{FPCoreParser, Span};
 use calyx_libm_ast_lowering::lower_ast;
 use calyx_libm_backend::{ImportPaths, Program, build_library, compile_hir};
 use calyx_libm_hir_passes::run_passes;

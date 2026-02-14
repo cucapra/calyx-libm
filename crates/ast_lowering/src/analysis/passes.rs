@@ -1,6 +1,6 @@
 use std::cell::{OnceCell, RefCell, RefMut};
 
-use calyx_libm_ast::ast;
+use calyx_libm_ast as ast;
 use calyx_libm_utils::{Config, Reporter};
 
 pub trait Managed<Cache>

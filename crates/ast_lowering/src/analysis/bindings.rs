@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use calyx_libm_ast::{Visitor, ast, visitor};
+use calyx_libm_ast::{self as ast, Visitor, visitor};
 use calyx_libm_utils::{Diagnostic, Reporter};
 
 use super::passes::{Pass, PassManager};
