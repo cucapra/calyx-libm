@@ -21,7 +21,7 @@ private fn cosim_setup(e) {
     e.var_("result", "project/solution1/sim/wrapc/result.dat");
     e.var_("report", "project/solution1/sim/report/verilog/lat.rpt");
 
-    e.rule("vitis-cosim", "vitis_hls -f cosim.tcl > /dev/null");
+    e.rule("vitis-cosim", "vitis-run --tcl cosim.tcl > /dev/null");
 
     e.build_cmd(
         ["$result", "$report"],
