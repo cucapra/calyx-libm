@@ -3,9 +3,11 @@ use std::str::FromStr;
 
 use crate::Format;
 
-pub struct Config {
+pub struct Config<'a> {
     pub format: Format,
     pub range_analysis: RangeAnalysis,
+    pub enabled: &'a [String],
+    pub disabled: &'a [String],
 }
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]

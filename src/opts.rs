@@ -29,6 +29,14 @@ pub struct Opts {
     /// range analysis mode
     #[argh(option, default = "Default::default()")]
     pub range_analysis: RangeAnalysis,
+
+    /// enable pass
+    #[argh(option, short = 'e')]
+    pub enable: Vec<String>,
+
+    /// disable pass
+    #[argh(option, short = 'd')]
+    pub disable: Vec<String>,
 }
 
 impl Opts {
@@ -37,10 +45,12 @@ impl Opts {
         argh::from_env()
     }
 
-    pub fn config(&self) -> Config {
+    pub fn config(&self) -> Config<'_> {
         Config {
             format: self.format,
             range_analysis: self.range_analysis,
+            enabled: &self.enable,
+            disabled: &self.disable,
         }
     }
 }

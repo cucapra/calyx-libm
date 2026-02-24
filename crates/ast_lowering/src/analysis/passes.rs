@@ -41,7 +41,7 @@ where
 }
 
 pub struct PassManager<'pm, 'ast, 'src> {
-    cfg: &'pm Config,
+    cfg: &'pm Config<'pm>,
     defs: &'ast [ast::FPCore],
     rpt: RefCell<&'pm mut Reporter<'src>>,
     cache: Cache<'ast>,
@@ -61,7 +61,7 @@ impl<'pm, 'ast, 'src> PassManager<'pm, 'ast, 'src> {
         }
     }
 
-    pub fn cfg(&self) -> &'pm Config {
+    pub fn cfg(&self) -> &'pm Config<'pm> {
         self.cfg
     }
 

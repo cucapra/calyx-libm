@@ -5,6 +5,9 @@ use crate::{Pass, PassContext, PassError, Visitor, visitor};
 pub struct UnivariatePromotion;
 
 impl Pass for UnivariatePromotion {
+    const NAME: &str = "univariate-promotion";
+    const IS_DEFAULT: bool = true;
+
     fn run(ctx: &mut PassContext) -> Result<(), PassError> {
         Self.visit_definitions(ctx.hir)
     }

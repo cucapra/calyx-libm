@@ -5,6 +5,9 @@ use crate::{Pass, PassContext, PassError, Visitor, visitor};
 pub struct ConstantPropagation;
 
 impl Pass for ConstantPropagation {
+    const NAME: &str = "constant-propagation";
+    const IS_DEFAULT: bool = true;
+
     fn run(ctx: &mut PassContext) -> Result<(), PassError> {
         Self.visit_definitions(ctx.hir)
     }
