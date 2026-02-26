@@ -286,7 +286,7 @@ impl Visitor for Builder<'_, '_> {
                         &Diagnostic::error()
                             .with_message("precondition is too weak")
                             .with_primary(
-                                ctx[arg].var.span,
+                                ctx[arg].name.span,
                                 "argument has unbounded domain",
                             ),
                     );

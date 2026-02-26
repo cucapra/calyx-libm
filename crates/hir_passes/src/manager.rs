@@ -52,9 +52,10 @@ pub fn run_passes(
         reporter,
     };
 
-    static PASSES: [PassInfo; 2] = [
+    static PASSES: [PassInfo; 3] = [
         pass_info::<transform::ConstantPropagation>(),
         pass_info::<transform::UnivariatePromotion>(),
+        pass_info::<transform::OperatorCoalescing>(),
     ];
 
     for pass in &PASSES {

@@ -598,7 +598,7 @@ impl Builder<'_, '_, '_> {
                 self.compile_constant(*constant, expr.span)
             }
             hir::ExprKind::Var(_, hir::VarKind::Arg(arg)) => {
-                let id = self.ctx[*arg].var.id;
+                let id = self.ctx[*arg].name.id;
                 let port = self.builder.component.signature.borrow().get(id);
 
                 Some(CompiledExpr::from_port(port))
@@ -674,7 +674,7 @@ fn compile_definition(
             .map(|arg| {
                 ir::PortDef::new(
                     ir::Id {
-                        id: cc.ctx[arg].var.id,
+                        id: cc.ctx[arg].name.id,
                     },
                     u64::from(cc.format.width),
                     ir::Direction::Input,

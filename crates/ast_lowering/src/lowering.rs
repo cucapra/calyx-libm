@@ -90,13 +90,16 @@ impl<'ast> Builder<'_, 'ast, '_> {
         &mut self,
         arg: &'ast ast::Argument,
     ) -> Result<hir::ArgIdx, LoweringError> {
+        let scope = self.lower_properties(&arg.props)?;
+
         let lowered = hir::Argument {
-            var: arg.var.clone(),
-            scope: self.lower_properties(&arg.props)?,
+            name: arg.var.clone(),
+            var: self.ctx.vars.next_key(),
+            scope,
         };
 
-        let var = self.ctx.vars.push(());
         let idx = self.ctx.args.push(lowered);
+        let var = self.ctx.vars.push(hir::VarKind::Arg(idx));
 
         self.vars.insert(arg.uid, (var, hir::VarKind::Arg(idx)));
 
@@ -286,9 +289,10 @@ impl<'ast> Builder<'_, 'ast, '_> {
             let val = self.lower_expression(expr)?;
 
             let var = if init {
-                let var = self.ctx.vars.push(());
+                let kind = kind(val);
+                let var = self.ctx.vars.push(kind);
 
-                self.vars.insert(id, (var, kind(val)));
+                self.vars.insert(id, (var, kind));
 
                 var
             } else {

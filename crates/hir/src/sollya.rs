@@ -3,7 +3,7 @@ use std::fmt;
 use calyx_libm_ast as ast;
 
 use super::Context;
-use super::index as idx;
+use super::{hir, index as idx};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum SollyaExpr {
@@ -39,6 +39,21 @@ impl SollyaBinOp {
             SollyaBinOp::Pow => (0, 1),
             SollyaBinOp::Mul | SollyaBinOp::Div => (5, 4),
             SollyaBinOp::Add | SollyaBinOp::Sub => (7, 6),
+        }
+    }
+}
+
+impl TryFrom<hir::ArithOp> for SollyaBinOp {
+    type Error = ();
+
+    fn try_from(value: hir::ArithOp) -> Result<Self, Self::Error> {
+        match value {
+            hir::ArithOp::Add => Ok(SollyaBinOp::Add),
+            hir::ArithOp::Sub => Ok(SollyaBinOp::Sub),
+            hir::ArithOp::Mul => Ok(SollyaBinOp::Mul),
+            hir::ArithOp::Div => Ok(SollyaBinOp::Div),
+            hir::ArithOp::Pow => Ok(SollyaBinOp::Pow),
+            _ => Err(()),
         }
     }
 }
@@ -111,16 +126,71 @@ impl TryFrom<ast::MathOp> for SollyaFn {
     }
 }
 
+impl TryFrom<hir::ArithOp> for SollyaFn {
+    type Error = ();
+
+    fn try_from(value: hir::ArithOp) -> Result<Self, Self::Error> {
+        match value {
+            hir::ArithOp::Sqrt => Ok(SollyaFn::Sqrt),
+            _ => Err(()),
+        }
+    }
+}
+
 impl idx::SollyaIdx {
-    /// If `self` represents a named function, get its name as an identifier.
-    pub fn name(self, ctx: &Context) -> Option<&'static str> {
+    /// Returns `self` composed with `other`.
+    pub fn compose(
+        self,
+        other: idx::SollyaIdx,
+        ctx: &mut Context,
+    ) -> idx::SollyaIdx {
+        match ctx[self] {
+            SollyaExpr::Variable => other,
+            SollyaExpr::Number(_) => self,
+            SollyaExpr::Neg(arg) => {
+                let new = arg.compose(other, ctx);
+
+                if new == arg {
+                    self
+                } else {
+                    ctx.ops.intern(SollyaExpr::Neg(new))
+                }
+            }
+            SollyaExpr::Binary(op, lhs, rhs) => {
+                let new_lhs = lhs.compose(other, ctx);
+                let new_rhs = rhs.compose(other, ctx);
+
+                if new_lhs == lhs && new_rhs == rhs {
+                    self
+                } else {
+                    ctx.ops.intern(SollyaExpr::Binary(op, new_lhs, new_rhs))
+                }
+            }
+            SollyaExpr::Call(op, arg) => {
+                let new = arg.compose(other, ctx);
+
+                if new == arg {
+                    self
+                } else {
+                    ctx.ops.intern(SollyaExpr::Call(op, new))
+                }
+            }
+        }
+    }
+
+    pub fn function(self, ctx: &Context) -> Option<SollyaFn> {
         if let SollyaExpr::Call(f, arg) = ctx[self]
             && let SollyaExpr::Variable = ctx[arg]
         {
-            Some(f.as_str())
+            Some(f)
         } else {
             None
         }
+    }
+
+    /// If `self` represents a named function, get its name as an identifier.
+    pub fn name(self, ctx: &Context) -> Option<&'static str> {
+        self.function(ctx).map(SollyaFn::as_str)
     }
 
     /// Returns an adapter for formatting `self` as a pretty-printed function.

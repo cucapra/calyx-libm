@@ -17,7 +17,8 @@ pub struct Definition {
 }
 
 pub struct Argument {
-    pub var: Symbol,
+    pub name: Symbol,
+    pub var: idx::VarIdx,
     pub scope: PackedOption<idx::ScopeIdx>,
 }
 

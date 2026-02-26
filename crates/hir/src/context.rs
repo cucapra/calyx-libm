@@ -11,7 +11,7 @@ pub struct Context {
     pub args: PrimaryMap<idx::ArgIdx, hir::Argument>,
     pub exprs: PrimaryMap<idx::ExprIdx, hir::Expression>,
     pub numbers: PrimaryMap<idx::NumIdx, hir::Number>,
-    pub vars: PrimaryMap<idx::VarIdx, ()>,
+    pub vars: PrimaryMap<idx::VarIdx, hir::VarKind>,
     pub writes: PrimaryMap<idx::WriteIdx, hir::Write>,
     pub ops: Interned<idx::SollyaIdx, hir::SollyaExpr>,
     pub scopes: PrimaryMap<idx::ScopeIdx, hir::Scope>,
@@ -50,6 +50,7 @@ index_impl!(defs, idx::DefIdx, hir::Definition);
 index_impl!(args, idx::ArgIdx, hir::Argument);
 index_impl!(exprs, idx::ExprIdx, hir::Expression);
 index_impl!(numbers, idx::NumIdx, hir::Number);
+index_impl!(vars, idx::VarIdx, hir::VarKind);
 index_impl!(writes, idx::WriteIdx, hir::Write);
 
 impl Index<idx::SollyaIdx> for Context {
