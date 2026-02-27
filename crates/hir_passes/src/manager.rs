@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use calyx_libm_hir as hir;
-use calyx_libm_utils::{Config, Reporter};
+use calyx_libm_utils::{Config, Diagnostic, Reporter};
 
 use super::transform;
 
@@ -36,11 +36,30 @@ const fn pass_info<P: Pass>() -> PassInfo {
     }
 }
 
+static PASSES: [PassInfo; 3] = [
+    pass_info::<transform::ConstantPropagation>(),
+    pass_info::<transform::UnivariatePromotion>(),
+    pass_info::<transform::OperatorCoalescing>(),
+];
+
 pub fn run_passes(
     ctx: &mut hir::Context,
     cfg: &Config,
     reporter: &mut Reporter,
 ) -> Result<(), PassError> {
+    let known: HashSet<&str> = PASSES.iter().map(|pass| pass.name).collect();
+
+    for pass in cfg.enabled.iter().chain(cfg.disabled) {
+        if !known.contains(pass.as_str()) {
+            reporter.emit(
+                &Diagnostic::error()
+                    .with_message(format!("unrecognized pass `{pass}`")),
+            );
+
+            return Err(PassError);
+        }
+    }
+
     let enabled: HashSet<&str> =
         cfg.enabled.iter().map(String::as_str).collect();
     let disabled: HashSet<&str> =
@@ -51,12 +70,6 @@ pub fn run_passes(
         cfg,
         reporter,
     };
-
-    static PASSES: [PassInfo; 3] = [
-        pass_info::<transform::ConstantPropagation>(),
-        pass_info::<transform::UnivariatePromotion>(),
-        pass_info::<transform::OperatorCoalescing>(),
-    ];
 
     for pass in &PASSES {
         if (pass.is_default || enabled.contains(pass.name))
