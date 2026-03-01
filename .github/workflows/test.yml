@@ -39,3 +39,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run Clippy
         run: cargo clippy --all-targets --all-features
+
+  ruff:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Ruff
+        uses: astral-sh/ruff-action@v3
+      - name: Check formatting
+        run: ruff format --check
