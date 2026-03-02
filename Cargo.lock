@@ -175,7 +175,7 @@ dependencies = [
  "calyx-libm-hir",
  "calyx-libm-hir-passes",
  "calyx-libm-utils",
- "calyx-utils",
+ "calyx-stdlib",
  "itertools",
  "malachite",
  "smallvec",
@@ -218,6 +218,12 @@ dependencies = [
  "itertools",
  "malachite",
 ]
+
+[[package]]
+name = "calyx-stdlib"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed116366a4cabb20fecb446bb1fb5ed45e22a37217d8832995d16b3e868196fa"
 
 [[package]]
 name = "calyx-utils"

@@ -1,7 +1,6 @@
 import re
 from pathlib import Path
 
-import fud.config
 import simplejson as json
 from fud import errors
 from fud.stages import SourceType, Stage
@@ -38,7 +37,7 @@ class CalyxLibmStage(Stage):
         exe = config['stages', self.name, 'exec']
         flags = config.get(['stages', self.name, 'flags']) or ''
 
-        cmd = ' '.join([exe, '-l', config['global', fud.config.ROOT], flags])
+        cmd = ' '.join([exe, flags])
 
         @builder.step(description=cmd)
         def run_calyx_libm(stream: SourceType.Stream) -> SourceType.Stream:

@@ -1,49 +1,41 @@
-use std::collections::HashSet;
-use std::path::Path;
+use std::path::PathBuf;
 
-use calyx_frontend::{LibrarySignatures, Workspace, parser::CalyxParser};
-use calyx_utils::{CalyxResult, Error};
+use calyx_frontend::{LibrarySignatures, NamespaceDef};
+use calyx_stdlib::{COMPILE_LIB, KNOWN_LIBS};
 
-use super::{Import, ImportPaths};
+const NUMBERS_LIB: (&str, &str) = (
+    "numbers.futil",
+    include_str!("../../../../primitives/numbers.futil"),
+);
 
-pub fn build_library(
-    search_paths: &[&Path],
-) -> CalyxResult<(LibrarySignatures, ImportPaths)> {
-    let mut stack: Vec<_> = Import::PATHS
-        .iter()
-        .map(|&import| {
-            search_paths
-                .iter()
-                .find_map(|&lib_path| {
-                    let import = lib_path.join(import).canonicalize().ok()?;
+pub fn build_library() -> LibrarySignatures {
+    let (_, compile) = COMPILE_LIB;
+    let (_, numbers) = NUMBERS_LIB;
 
-                    import.exists().then_some((import, lib_path))
-                })
-                .ok_or_else(|| {
-                    Error::invalid_file(format!("Unresolved import `{import}`"))
-                })
-        })
-        .collect::<CalyxResult<_>>()?;
+    let [
+        (_, [(_, core), _]),
+        (_, [(_, binary_operators), _]),
+        (_, [(_, math), _]),
+        ..,
+    ] = KNOWN_LIBS;
 
-    let paths = ImportPaths::new(|i| stack[i].0.to_string_lossy().into_owned());
+    let mut lib = LibrarySignatures::default();
 
-    let mut workspace = Workspace::default();
-    let mut imported = HashSet::new();
+    for source in [compile, core, binary_operators, math, numbers] {
+        let ns = NamespaceDef::construct_from_str(source).unwrap();
 
-    while let Some((import, lib_path)) = stack.pop() {
-        if imported.contains(&import) {
-            continue;
+        for (path, primitives) in ns.externs {
+            if path.is_some() {
+                for primitive in primitives {
+                    lib.add_extern_primitive(PathBuf::new(), primitive);
+                }
+            } else {
+                for primitive in primitives {
+                    lib.add_inline_primitive(primitive);
+                }
+            }
         }
-
-        let namespace = CalyxParser::parse_file(&import)?;
-        let parent = import.parent().unwrap();
-
-        let next = workspace
-            .merge_namespace(namespace, false, parent, true, lib_path)?;
-
-        stack.extend(next.into_iter().map(|(import, _)| (import, lib_path)));
-        imported.insert(import);
     }
 
-    Ok((workspace.lib, paths))
+    lib
 }

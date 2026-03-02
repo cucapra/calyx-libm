@@ -6,7 +6,7 @@ edition.workspace = true
 [dependencies]
 calyx-frontend.workspace = true
 calyx-ir.workspace = true
-calyx-utils.workspace = true
+calyx-stdlib.workspace = true
 itertools.workspace = true
 malachite.workspace = true
 smallvec.workspace = true

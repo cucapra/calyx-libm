@@ -9,7 +9,7 @@ use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
 use calyx_libm_utils::{Config, Diagnostic, Format, Reporter};
 
 use super::libm::{self, Prototype};
-use super::stdlib::{ImportPaths, ImportSet, Primitive};
+use super::stdlib::{ImportPaths, ImportSet, Primitive, build_library};
 use super::{ComponentManager, IrBuilder};
 
 pub struct Program {
@@ -736,9 +736,9 @@ pub fn compile_hir(
     ctx: &hir::Context,
     cfg: &Config,
     reporter: &mut Reporter,
-    mut lib: ir::LibrarySignatures,
 ) -> Option<Program> {
     let mut cm = ComponentManager::new();
+    let mut lib = build_library();
 
     let math_lib =
         libm::compile_math_library(ctx, cfg, reporter, &mut cm, &mut lib)?;

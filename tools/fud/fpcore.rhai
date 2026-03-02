@@ -15,7 +15,7 @@ fn calyx_libm_setup(e) {
 
     e.rule(
         "calyx-libm",
-        "$calyx-libm-exe -l $calyx-lib-path $calyx-libm-args $in > $out",
+        "$calyx-libm-exe $calyx-libm-args $in > $out",
     );
 }
 

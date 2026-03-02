@@ -9,4 +9,4 @@ use components::ComponentManager;
 use stdlib::Import;
 
 pub use compile::{Program, compile_hir};
-pub use stdlib::{ImportPaths, build_library};
+pub use stdlib::ImportPaths;

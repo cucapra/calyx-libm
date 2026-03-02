@@ -10,17 +10,9 @@ pub struct Opts {
     #[argh(positional)]
     pub file: Option<PathBuf>,
 
-    /// add directory to library search path
-    #[argh(option, short = 'l')]
-    pub lib_path: Vec<PathBuf>,
-
     /// output file
     #[argh(option, short = 'o')]
     pub output: Option<PathBuf>,
-
-    /// emit absolute import paths
-    #[argh(switch)]
-    pub absolute: bool,
 
     /// global numeric format
     #[argh(option, default = "Default::default()")]

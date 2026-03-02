@@ -2,13 +2,13 @@ mod opts;
 
 use std::borrow::Cow;
 use std::fs::{self, File};
-use std::path::{Path, PathBuf};
+use std::io;
+use std::path::PathBuf;
 use std::process::ExitCode;
-use std::{io, iter};
 
 use calyx_libm_ast::{FPCoreParser, Span};
 use calyx_libm_ast_lowering::lower_ast;
-use calyx_libm_backend::{ImportPaths, Program, build_library, compile_hir};
+use calyx_libm_backend::{Program, compile_hir};
 use calyx_libm_hir_passes::run_passes;
 use calyx_libm_utils::{Diagnostic, Reporter};
 
@@ -28,22 +28,14 @@ fn read_input(file: &Option<PathBuf>) -> io::Result<(Cow<'_, str>, String)> {
     }
 }
 
-fn write_output(
-    program: &Program,
-    paths: Option<&ImportPaths>,
-    file: &Option<PathBuf>,
-) -> io::Result<()> {
+fn write_output(program: &Program, file: &Option<PathBuf>) -> io::Result<()> {
     let mut out: Box<dyn io::Write> = if let Some(path) = file {
         Box::new(File::create(path)?)
     } else {
         Box::new(io::stdout())
     };
 
-    if let Some(paths) = paths {
-        program.write_with_paths(paths, &mut out)
-    } else {
-        program.write(&mut out)
-    }
+    program.write(&mut out)
 }
 
 fn main() -> ExitCode {
@@ -85,29 +77,11 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    let search_paths: Vec<_> = opts
-        .lib_path
-        .iter()
-        .map(PathBuf::as_path)
-        .chain(iter::once(Path::new(env!("CARGO_MANIFEST_DIR"))))
-        .collect();
-
-    let (lib, paths) = match build_library(&search_paths) {
-        Ok(result) => result,
-        Err(err) => {
-            eprintln!("error: {err:?}");
-
-            return ExitCode::FAILURE;
-        }
-    };
-
-    let Some(program) = compile_hir(&ctx, &config, &mut reporter, lib) else {
+    let Some(program) = compile_hir(&ctx, &config, &mut reporter) else {
         return ExitCode::FAILURE;
     };
 
-    if let Err(err) =
-        write_output(&program, opts.absolute.then_some(&paths), &opts.output)
-    {
+    if let Err(err) = write_output(&program, &opts.output) {
         reporter.emit(&Diagnostic::from(err));
 
         return ExitCode::FAILURE;
