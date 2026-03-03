@@ -213,20 +213,48 @@ impl<'a> IrBuilder<'a> {
         ir::Builder::new(self.component, self.lib).not_generated()
     }
 
-    pub fn collapse<I, F>(statements: I, f: F) -> ir::Control
+    pub fn seq<I>(stmts: I) -> ir::Control
     where
         I: IntoIterator<Item = ir::Control>,
+    {
+        let mut flattened = Vec::new();
+
+        for control in stmts {
+            match control {
+                ir::Control::Seq(mut seq) => flattened.append(&mut seq.stmts),
+                ir::Control::Empty(_) => (),
+                _ => flattened.push(control),
+            }
+        }
+
+        IrBuilder::compose(flattened, ir::Control::seq)
+    }
+
+    pub fn par<I>(stmts: I) -> ir::Control
+    where
+        I: IntoIterator<Item = ir::Control>,
+    {
+        let mut flattened = Vec::new();
+
+        for control in stmts {
+            match control {
+                ir::Control::Par(mut par) => flattened.append(&mut par.stmts),
+                ir::Control::Empty(_) => (),
+                _ => flattened.push(control),
+            }
+        }
+
+        IrBuilder::compose(flattened, ir::Control::par)
+    }
+
+    fn compose<F>(stmts: Vec<ir::Control>, f: F) -> ir::Control
+    where
         F: FnOnce(Vec<ir::Control>) -> ir::Control,
     {
-        let statements: Vec<_> = statements
-            .into_iter()
-            .filter(|control| !matches!(control, ir::Control::Empty(_)))
-            .collect();
-
-        match statements.len() {
+        match stmts.len() {
             0 => ir::Control::empty(),
-            1 => statements.into_iter().next().unwrap(),
-            _ => f(statements),
+            1 => stmts.into_iter().next().unwrap(),
+            _ => f(stmts),
         }
     }
 

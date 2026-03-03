@@ -140,7 +140,7 @@ impl Builder<'_, '_, '_> {
             })
             .collect::<Option<_>>()?;
 
-        let control = IrBuilder::collapse(control, ir::Control::par);
+        let control = IrBuilder::par(control);
 
         let mut reduce = |left, right, decl: &Primitive| {
             let cell = self.builder.add_primitive(
@@ -228,7 +228,7 @@ impl Builder<'_, '_, '_> {
             })
             .collect::<Option<_>>()?;
 
-        let control = IrBuilder::collapse(control, ir::Control::par);
+        let control = IrBuilder::par(control);
         let out = cell.borrow().get(output_port);
 
         let control = if is_comb {
@@ -247,7 +247,7 @@ impl Builder<'_, '_, '_> {
                 mem::take(&mut assignments),
             );
 
-            IrBuilder::collapse([control, invoke], ir::Control::seq)
+            IrBuilder::seq([control, invoke])
         };
 
         Some(CompiledExpr {
@@ -424,20 +424,14 @@ impl Builder<'_, '_, '_> {
                 let conditional = ir::Control::if_(
                     cond.out,
                     Some(group),
-                    Box::new(IrBuilder::collapse(
-                        [true_branch.control, store_true],
-                        ir::Control::seq,
-                    )),
-                    Box::new(IrBuilder::collapse(
-                        [false_branch.control, store_false],
-                        ir::Control::seq,
-                    )),
+                    Box::new(IrBuilder::seq([true_branch.control, store_true])),
+                    Box::new(IrBuilder::seq([
+                        false_branch.control,
+                        store_false,
+                    ])),
                 );
 
-                let control = IrBuilder::collapse(
-                    [cond.control, conditional],
-                    ir::Control::seq,
-                );
+                let control = IrBuilder::seq([cond.control, conditional]);
 
                 Some(CompiledExpr {
                     control,
@@ -474,20 +468,16 @@ impl Builder<'_, '_, '_> {
         let body = self.compile_expression(expr.body)?;
 
         let control = if expr.sequential {
-            IrBuilder::collapse(
+            IrBuilder::seq(
                 itertools::interleave(args, stores)
                     .chain(iter::once(body.control)),
-                ir::Control::seq,
             )
         } else {
-            IrBuilder::collapse(
-                [
-                    IrBuilder::collapse(args, ir::Control::par),
-                    IrBuilder::collapse(stores, ir::Control::par),
-                    body.control,
-                ],
-                ir::Control::seq,
-            )
+            IrBuilder::seq([
+                IrBuilder::par(args),
+                IrBuilder::par(stores),
+                body.control,
+            ])
         };
 
         Some(CompiledExpr { control, ..body })
@@ -540,47 +530,36 @@ impl Builder<'_, '_, '_> {
         let group = self.builder.add_comb_group("cond", cond.assignments);
 
         let control = if expr.sequential {
-            IrBuilder::collapse(
+            IrBuilder::seq(
                 itertools::interleave(inits, init_stores).chain([
                     IrBuilder::clone_control(&cond.control),
                     ir::Control::while_(
                         cond.out,
                         Some(group),
-                        Box::new(IrBuilder::collapse(
+                        Box::new(IrBuilder::seq(
                             itertools::interleave(updates, update_stores)
                                 .chain(iter::once(cond.control)),
-                            ir::Control::seq,
                         )),
                     ),
                     body.control,
                 ]),
-                ir::Control::seq,
             )
         } else {
-            IrBuilder::collapse(
-                [
-                    IrBuilder::collapse(inits, ir::Control::par),
-                    IrBuilder::collapse(init_stores, ir::Control::par),
-                    IrBuilder::clone_control(&cond.control),
-                    ir::Control::while_(
-                        cond.out,
-                        Some(group),
-                        Box::new(IrBuilder::collapse(
-                            [
-                                IrBuilder::collapse(updates, ir::Control::par),
-                                IrBuilder::collapse(
-                                    update_stores,
-                                    ir::Control::par,
-                                ),
-                                cond.control,
-                            ],
-                            ir::Control::seq,
-                        )),
-                    ),
-                    body.control,
-                ],
-                ir::Control::seq,
-            )
+            IrBuilder::seq([
+                IrBuilder::par(inits),
+                IrBuilder::par(init_stores),
+                IrBuilder::clone_control(&cond.control),
+                ir::Control::while_(
+                    cond.out,
+                    Some(group),
+                    Box::new(IrBuilder::seq([
+                        IrBuilder::par(updates),
+                        IrBuilder::par(update_stores),
+                        cond.control,
+                    ])),
+                ),
+                body.control,
+            ])
         };
 
         Some(CompiledExpr { control, ..body })
