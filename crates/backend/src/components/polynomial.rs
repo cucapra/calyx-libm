@@ -8,7 +8,7 @@ use calyx_libm_approx::Datapath;
 use calyx_libm_utils::diagnostics::Diagnostic;
 use calyx_libm_utils::mangling::mangle;
 
-use super::{ComponentBuilder, ComponentManager, Horner, LookupTable};
+use super::{ComponentBuilder, ComponentManager, Horner, Ids, LookupTable};
 use crate::IrBuilder;
 
 pub struct PiecewisePoly<'a> {
@@ -52,7 +52,6 @@ impl ComponentBuilder for PiecewisePoly<'_> {
         &self,
         name: ir::Id,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<ir::Component, Diagnostic> {
         let horner = Horner {
             format: self.table.format,
@@ -60,29 +59,30 @@ impl ComponentBuilder for PiecewisePoly<'_> {
             in_width: cmp::max(self.table.spec.idx_lsb, 1),
         };
 
-        let (lookup, lookup_ports) = cm.get(&self.table, lib)?;
-        let (horner, horner_ports) = cm.get(&horner, lib)?;
+        let (lookup, lookup_ports) = cm.get(&self.table)?;
+        let (horner, horner_ports) = cm.get(&horner)?;
 
         let ports = self.signature();
 
         let mut component = ir::Component::new(name, ports, true, false, None);
-        let mut builder = IrBuilder::new(&mut component, lib);
+        let mut builder = IrBuilder::new(&mut component, cm);
 
         let lookup = builder.add_component("lookup", lookup, lookup_ports);
         let horner = builder.add_component("horner", horner, horner_ports);
 
+        let Ids { in_, out, .. } = builder.cm.ids;
         let signature = &builder.component.signature;
 
         let [lookup_in, component_out] = build_assignments!(builder;
-            lookup["in"] = ? signature["in"];
-            signature["out"] = ? horner["out"];
+            lookup[in_] = ? signature[in_];
+            signature[out] = ? horner[out];
         );
 
         builder.add_continuous_assignment(component_out);
 
         let inputs = vec![
-            (ir::Id::new("in"), lookup.borrow().get("arg")),
-            (ir::Id::new("lut"), lookup.borrow().get("out")),
+            (in_, lookup.borrow().get("arg")),
+            (ir::Id::new("lut"), lookup.borrow().get(out)),
         ];
 
         let control =

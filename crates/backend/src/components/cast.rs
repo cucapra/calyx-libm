@@ -5,7 +5,7 @@ use calyx_ir as ir;
 use calyx_libm_utils::mangling::mangle;
 use calyx_libm_utils::{Diagnostic, Format};
 
-use super::{ComponentBuilder, ComponentManager};
+use super::{ComponentBuilder, ComponentManager, Ids};
 use crate::{Import, IrBuilder};
 
 pub struct Cast<'a> {
@@ -39,24 +39,23 @@ impl ComponentBuilder for Cast<'_> {
         &self,
         name: ir::Id,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<ir::Component, Diagnostic> {
         let ports = self.signature();
 
         let mut component = ir::Component::new(name, ports, false, true, None);
-        let mut builder = IrBuilder::new(&mut component, lib);
+        let mut builder = IrBuilder::new(&mut component, cm);
 
         let (msb_in, lsb_in) = self.from.vhdl();
         let (msb_out, lsb_out) = self.to.vhdl();
 
-        let [in_, out] = ["in", "out"].map(ir::Id::new);
+        let Ids { in_, out, .. } = builder.cm.ids;
 
         let (cell, port, width) = if msb_out > msb_in {
             let in_width = u64::from(self.from.width);
             let out_width = in_width + msb_out.abs_diff(msb_in);
 
             let (prefix, prim) = if self.from.is_signed {
-                cm.import(Import::BinaryOperators);
+                builder.cm.import(Import::BinaryOperators);
 
                 ("ext", "std_signext")
             } else {
@@ -81,7 +80,7 @@ impl ComponentBuilder for Cast<'_> {
         };
 
         let (cell, port, width) = if lsb_out < lsb_in {
-            cm.import(Import::Numbers);
+            builder.cm.import(Import::Numbers);
 
             let in_width = width;
             let out_width = in_width + lsb_in.abs_diff(lsb_out);

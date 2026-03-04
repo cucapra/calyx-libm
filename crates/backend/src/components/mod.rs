@@ -13,4 +13,4 @@ pub use lookup::{LookupTable, TableData};
 pub use polynomial::PiecewisePoly;
 pub use rom::Rom;
 
-pub use manager::{ComponentBuilder, ComponentManager, PrimitiveBuilder};
+pub use manager::{ComponentBuilder, ComponentManager, Ids, PrimitiveBuilder};

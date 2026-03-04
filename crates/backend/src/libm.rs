@@ -11,7 +11,7 @@ use calyx_libm_utils::interface::{Config, RangeAnalysis as AnalysisMode};
 use calyx_libm_utils::mangling::{Hash, Mangle};
 use calyx_libm_utils::{Diagnostic, Format, Reporter};
 
-use super::components::{self as comp, ComponentManager};
+use crate::components::{self as comp, ComponentManager};
 
 pub struct Prototype {
     pub name: ir::Id,
@@ -21,28 +21,26 @@ pub struct Prototype {
 }
 
 pub fn compile_math_library(
-    ctx: &hir::Context,
+    hir: &hir::Context,
     cfg: &Config,
     reporter: &mut Reporter,
     cm: &mut ComponentManager,
-    lib: &mut ir::LibrarySignatures,
 ) -> Option<HashMap<hir::ExprIdx, Prototype>> {
     let ranges = match cfg.range_analysis {
-        AnalysisMode::Interval => Some(RangeAnalysis::new(ctx, cfg, reporter)?),
+        AnalysisMode::Interval => Some(RangeAnalysis::new(hir, cfg, reporter)?),
         AnalysisMode::None => None,
     };
 
     let mut builder = Builder {
-        ctx,
+        hir,
         ranges: ranges.as_ref(),
         format: &cfg.format,
         reporter,
         cm,
-        lib,
         prototypes: HashMap::new(),
     };
 
-    builder.visit_definitions(ctx).ok()?;
+    builder.visit_definitions(hir).ok()?;
 
     Some(builder.prototypes)
 }
@@ -51,13 +49,12 @@ pub fn compile_math_library(
 pub struct LibraryError;
 
 struct Builder<'a, 'src> {
-    ctx: &'a hir::Context,
+    hir: &'a hir::Context,
     ranges: Option<&'a RangeAnalysis>,
     format: &'a Format,
 
     reporter: &'a mut Reporter<'src>,
     cm: &'a mut ComponentManager,
-    lib: &'a mut ir::LibrarySignatures,
 
     prototypes: HashMap<hir::ExprIdx, Prototype>,
 }
@@ -98,12 +95,12 @@ impl<'a> Builder<'a, '_> {
     ) -> Result<Prototype, Diagnostic> {
         static ZERO: hir::Rational = hir::Rational::ZERO;
 
-        let domain = expr.props(self.ctx).find_map(|prop| match prop {
+        let domain = expr.props(self.hir).find_map(|prop| match prop {
             hir::Property::Domain(domain) => Some(domain),
             _ => None,
         });
 
-        let strategy = expr.props(self.ctx).find_map(|prop| match prop {
+        let strategy = expr.props(self.hir).find_map(|prop| match prop {
             hir::Property::Impl(strategy) => Some(strategy),
             _ => None,
         });
@@ -116,7 +113,7 @@ impl<'a> Builder<'a, '_> {
             }
             Some(&hir::Strategy::Poly { degree, error }) => {
                 let error =
-                    error.map(|error| &self.ctx[error].value).unwrap_or(&ZERO);
+                    error.map(|error| &self.hir[error].value).unwrap_or(&ZERO);
 
                 self.build_poly(op, &domain, degree, error)
             }
@@ -138,12 +135,12 @@ impl<'a> Builder<'a, '_> {
     ) -> Result<DomainHint<'a>, Diagnostic> {
         let (left, right) = hint
             .map(|domain| {
-                (&self.ctx[domain.left].value, &self.ctx[domain.right].value)
+                (&self.hir[domain.left].value, &self.hir[domain.right].value)
             })
             .or_else(|| {
                 self.ranges.map(|ranges| {
                     let [left, right] =
-                        &ranges[args.first(self.ctx.pool()).unwrap()];
+                        &ranges[args.first(self.hir.pool()).unwrap()];
 
                     (left, right)
                 })
@@ -190,13 +187,12 @@ impl<'a> Builder<'a, '_> {
             spec: addr_spec,
         };
 
-        let (name, signature) =
-            self.cm.get(&builder, self.lib).map_err(|err| {
-                err.try_with_secondary(
-                    op.span,
-                    format!("while compiling operator `{}`", op.pretty),
-                )
-            })?;
+        let (name, signature) = self.cm.get(&builder).map_err(|err| {
+            err.try_with_secondary(
+                op.span,
+                format!("while compiling operator `{}`", op.pretty),
+            )
+        })?;
 
         Ok(Prototype {
             name,
@@ -257,13 +253,12 @@ impl<'a> Builder<'a, '_> {
             spec: datapath,
         };
 
-        let (name, signature) =
-            self.cm.get(&builder, self.lib).map_err(|err| {
-                err.try_with_secondary(
-                    op.span,
-                    format!("while compiling operator `{}`", op.pretty),
-                )
-            })?;
+        let (name, signature) = self.cm.get(&builder).map_err(|err| {
+            err.try_with_secondary(
+                op.span,
+                format!("while compiling operator `{}`", op.pretty),
+            )
+        })?;
 
         Ok(Prototype {
             name,

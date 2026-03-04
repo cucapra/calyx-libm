@@ -11,7 +11,7 @@ use calyx_libm_utils::mangling::{Mangle, mangle};
 use calyx_libm_utils::rational::FixedPoint;
 use calyx_libm_utils::{Diagnostic, Format};
 
-use super::{ComponentBuilder, ComponentManager, Rom};
+use super::{ComponentBuilder, ComponentManager, Ids, Rom};
 use crate::IrBuilder;
 
 /// Packs a sequence of values into a single bit vector. The first element of
@@ -51,7 +51,6 @@ impl LookupTable<'_> {
     fn build_rom(
         &self,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<ir::Id, Diagnostic> {
         let diagnostic = |value| {
             Diagnostic::error()
@@ -83,7 +82,7 @@ impl LookupTable<'_> {
             data: &data,
         };
 
-        cm.get_primitive(&rom, lib)
+        cm.get_primitive(&rom)
     }
 }
 
@@ -125,18 +124,17 @@ impl ComponentBuilder for LookupTable<'_> {
         &self,
         name: ir::Id,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<ir::Component, Diagnostic> {
-        let rom = self.build_rom(cm, lib)?;
+        let rom = self.build_rom(cm)?;
         let ports = self.signature();
 
         let mut component = ir::Component::new(name, ports, false, true, None);
-        let mut builder = IrBuilder::new(&mut component, lib);
+        let mut builder = IrBuilder::new(&mut component, cm);
 
         let global = u64::from(self.format.width);
 
         let rom = builder.add_primitive("rom", rom, &[]);
-        let left = builder.big_constant(&self.spec.subtrahend, global, cm);
+        let subtrahend = builder.big_constant(&self.spec.subtrahend, global);
 
         structure!(builder;
             let sub = prim std_sub(global);
@@ -148,12 +146,18 @@ impl ComponentBuilder for LookupTable<'_> {
             );
         );
 
-        let [in_, out] = ["in", "out"].map(ir::Id::new);
+        let Ids {
+            in_,
+            out,
+            left,
+            right,
+        } = builder.cm.ids;
+
         let signature = &builder.component.signature;
 
         let assigns = build_assignments!(builder;
-            sub["left"] = ? signature[in_];
-            sub["right"] = ? left[out];
+            sub[left] = ? signature[in_];
+            sub[right] = ? subtrahend[out];
             slice[in_] = ? sub[out];
             rom["idx"] = ? slice[out];
             signature[out] = ? rom[out];
@@ -200,8 +204,8 @@ impl ComponentBuilder for LookupTable<'_> {
                     high[in_] = ? sub[out];
                     com[in_] = ? high[out];
                     low[in_] = ? sub[out];
-                    cat["left"] = ? com[out];
-                    cat["right"] = ? low[out];
+                    cat[left] = ? com[out];
+                    cat[right] = ? low[out];
                     signature["arg"] = ? cat[out];
                 );
 

@@ -3,19 +3,19 @@
 use calyx_ir as ir;
 use malachite::Natural;
 
-use super::components::{ComponentManager, Constant};
+use crate::components::{ComponentManager, Constant};
 
 pub struct IrBuilder<'a> {
     pub component: &'a mut ir::Component,
-    pub lib: &'a mut ir::LibrarySignatures,
+    pub cm: &'a mut ComponentManager,
 }
 
 impl<'a> IrBuilder<'a> {
     pub fn new(
         component: &'a mut ir::Component,
-        lib: &'a mut ir::LibrarySignatures,
+        cm: &'a mut ComponentManager,
     ) -> IrBuilder<'a> {
-        IrBuilder { component, lib }
+        IrBuilder { component, cm }
     }
 
     pub fn add_constant(
@@ -32,14 +32,13 @@ impl<'a> IrBuilder<'a> {
         let prototype = ir::CellType::Constant { val: value, width };
 
         let ports = [ir::PortDef::new(
-            ir::Id::new("out"),
+            self.cm.ids.out,
             width,
             ir::Direction::Output,
             Default::default(),
         )];
 
-        let cell = ir::rrc(ir::Cell::new(name, prototype));
-        add_ports_to_cell(&cell, ports);
+        let cell = cell_with_ports(name, prototype, ports);
 
         self.component.cells.add(cell.clone());
 
@@ -84,7 +83,7 @@ impl<'a> IrBuilder<'a> {
             primitive: ir::Id,
             parameters: &[u64],
         ) -> ir::RRC<ir::Cell> {
-            let definition = builder.lib.get_primitive(primitive);
+            let definition = builder.cm.library.get_primitive(primitive);
             let (parameters, ports) = definition.resolve(parameters).unwrap();
 
             let name = builder.component.generate_name(prefix);
@@ -96,8 +95,7 @@ impl<'a> IrBuilder<'a> {
                 latency: definition.latency,
             };
 
-            let cell = ir::rrc(ir::Cell::new(name, prototype));
-            add_ports_to_cell(&cell, ports);
+            let cell = cell_with_ports(name, prototype, ports);
 
             builder.component.cells.add(cell.clone());
 
@@ -126,8 +124,7 @@ impl<'a> IrBuilder<'a> {
             let name = builder.component.generate_name(prefix);
             let prototype = ir::CellType::Component { name: component };
 
-            let cell = ir::rrc(ir::Cell::new(name, prototype));
-            add_ports_to_cell(&cell, ports);
+            let cell = cell_with_ports(name, prototype, ports);
 
             builder.component.cells.add(cell.clone());
 
@@ -172,13 +169,13 @@ impl<'a> IrBuilder<'a> {
         &mut self,
         value: &Natural,
         width: u64,
-        cm: &mut ComponentManager,
     ) -> ir::RRC<ir::Cell> {
         if let Ok(value) = u64::try_from(value) {
             self.add_constant(value, width)
         } else {
-            let primitive = cm
-                .get_primitive(&Constant { width, value }, self.lib)
+            let primitive = self
+                .cm
+                .get_primitive(&Constant { width, value })
                 .ok()
                 .unwrap();
 
@@ -210,7 +207,7 @@ impl<'a> IrBuilder<'a> {
     }
 
     fn ir_builder(&mut self) -> ir::Builder<'_> {
-        ir::Builder::new(self.component, self.lib).not_generated()
+        ir::Builder::new(self.component, &self.cm.library).not_generated()
     }
 
     pub fn seq<I>(stmts: I) -> ir::Control
@@ -264,24 +261,34 @@ impl<'a> IrBuilder<'a> {
     }
 }
 
-fn add_ports_to_cell<I>(cell: &ir::RRC<ir::Cell>, ports: I)
+fn cell_with_ports<I>(
+    name: ir::Id,
+    prototype: ir::CellType,
+    ports: I,
+) -> ir::RRC<ir::Cell>
 where
     I: IntoIterator<Item = ir::PortDef<u64>>,
 {
-    let wrc = ir::WRC::from(cell);
-    let cell_ports = &mut cell.borrow_mut().ports;
+    let cell = ir::rrc(ir::Cell::new(name, prototype));
+    let wrc = ir::WRC::from(&cell);
 
-    for port in ports {
-        let port = ir::rrc(ir::Port {
-            name: port.name(),
-            width: port.width,
-            direction: port.direction,
-            parent: ir::PortParent::Cell(wrc.clone()),
-            attributes: port.attributes,
-        });
+    {
+        let cell_ports = &mut cell.borrow_mut().ports;
 
-        cell_ports.push(port);
+        for port in ports {
+            let port = ir::rrc(ir::Port {
+                name: port.name(),
+                width: port.width,
+                direction: port.direction,
+                parent: ir::PortParent::Cell(wrc.clone()),
+                attributes: port.attributes,
+            });
+
+            cell_ports.push(port);
+        }
     }
+
+    cell
 }
 
 fn clone_control(control: &ir::Control) -> ir::Control {

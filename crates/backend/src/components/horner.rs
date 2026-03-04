@@ -11,7 +11,7 @@ use calyx_libm_approx::Datapath;
 use calyx_libm_utils::mangling::mangle;
 use calyx_libm_utils::{Diagnostic, Format};
 
-use super::{Cast, ComponentBuilder, ComponentManager};
+use super::{Cast, ComponentBuilder, ComponentManager, Ids};
 use crate::{Import, IrBuilder};
 
 const INLINE: ir::Attribute = ir::Attribute::Bool(ir::BoolAttr::Inline);
@@ -28,7 +28,6 @@ impl Horner<'_> {
     fn output_cast(
         &self,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<Signature, Diagnostic> {
         let cast = Cast {
             from: &Format {
@@ -39,13 +38,12 @@ impl Horner<'_> {
             to: self.format,
         };
 
-        cm.get(&cast, lib)
+        cm.get(&cast)
     }
 
     fn table_casts(
         &self,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<Vec<Signature>, Diagnostic> {
         let max_width = *self.spec.lut_widths.iter().max().unwrap();
 
@@ -77,7 +75,7 @@ impl Horner<'_> {
                     to: &to,
                 };
 
-                cm.get(&cast, lib)
+                cm.get(&cast)
             })
             .collect()
     }
@@ -120,17 +118,16 @@ impl ComponentBuilder for Horner<'_> {
         &self,
         name: ir::Id,
         cm: &mut ComponentManager,
-        lib: &mut ir::LibrarySignatures,
     ) -> Result<ir::Component, Diagnostic> {
-        let table_casts = self.table_casts(cm, lib)?;
-        let output_cast = self.output_cast(cm, lib)?;
+        let table_casts = self.table_casts(cm)?;
+        let output_cast = self.output_cast(cm)?;
 
         let ports = self.signature();
 
         let mut component = ir::Component::new(name, ports, true, false, None);
-        let mut builder = IrBuilder::new(&mut component, lib);
+        let mut builder = IrBuilder::new(&mut component, cm);
 
-        cm.import(Import::Numbers);
+        builder.cm.import(Import::Numbers);
 
         assert!(self.spec.sum_scale <= self.spec.lut_scale);
 
@@ -155,13 +152,16 @@ impl ComponentBuilder for Horner<'_> {
         let bias = builder.big_constant(
             &(Natural::ONE << (self.format.scale - self.spec.sum_scale - 1)),
             u64::from(self.spec.sum_width),
-            cm,
         );
 
         let lut_width: u32 = self.spec.lut_widths.iter().sum();
 
-        let [in_, out, left, right] =
-            ["in", "out", "left", "right"].map(ir::Id::new);
+        let Ids {
+            in_,
+            out,
+            left,
+            right,
+        } = builder.cm.ids;
 
         let table_casts: Vec<_> = iter::zip(&self.spec.lut_widths, table_casts)
             .rev()
