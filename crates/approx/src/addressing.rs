@@ -12,7 +12,7 @@ use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
 use calyx_libm_utils::{Format, Mangle};
 
 /// A specification for obtaining table indices from raw input values.
-#[derive(Mangle)]
+#[derive(Debug, Mangle)]
 pub struct AddressSpec {
     pub subtrahend: Natural,
     pub idx_lsb: u64,
@@ -107,7 +107,7 @@ impl AddressSpec {
 }
 
 /// An input domain for a lookup table.
-#[derive(Mangle)]
+#[derive(Debug, Mangle)]
 pub struct TableDomain {
     pub left: Rational,
     pub right: Rational,
@@ -158,7 +158,7 @@ impl TableDomain {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DomainErrorKind {
     EndpointNotRepresentable,
     EndpointOutOfBounds,

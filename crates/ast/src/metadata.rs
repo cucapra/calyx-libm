@@ -69,7 +69,7 @@ impl PropKind {
 }
 
 /// A precision family and its parameters.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Precision {
     Float { e: u32, nbits: u32 },
     Posit { es: u32, nbits: u32 },
@@ -98,7 +98,7 @@ impl Precision {
 }
 
 /// An IEEE 754 rounding mode.
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 pub enum RoundingMode {
     #[strum(to_string = "nearestEven")]
     NearestEven,
@@ -112,7 +112,7 @@ pub enum RoundingMode {
     ToZero,
 }
 
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 pub enum OverflowMode {
     #[strum(to_string = "infinity")]
     Infinity,

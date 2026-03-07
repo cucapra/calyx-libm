@@ -14,7 +14,7 @@ use calyx_libm_utils::{Format, Mangle};
 use crate::PolynomialApprox;
 
 /// Architectural parameters for a polynomial evaluator.
-#[derive(Mangle)]
+#[derive(Debug, Mangle)]
 pub struct Datapath {
     pub lut_widths: Vec<u32>,
     pub lut_scale: i32,

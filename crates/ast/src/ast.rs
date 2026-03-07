@@ -178,12 +178,14 @@ impl NodeId {
 pub struct Span(usize, usize);
 
 impl Span {
+    #[inline]
     pub fn new(start: usize, end: usize) -> Span {
         Span(start, end)
     }
 }
 
 impl From<Span> for Range<usize> {
+    #[inline]
     fn from(value: Span) -> Self {
         Range {
             start: value.0,

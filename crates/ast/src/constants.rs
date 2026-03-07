@@ -4,7 +4,7 @@
 
 use strum_macros::{EnumString, IntoStaticStr};
 
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 #[rustfmt::skip]
 pub enum MathOp {
     #[strum(to_string = "+")] Add,
@@ -108,7 +108,7 @@ impl MathOp {
     }
 }
 
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 #[rustfmt::skip]
 pub enum TestOp {
     #[strum(to_string = "<")] Lt,
@@ -143,7 +143,7 @@ impl TestOp {
     }
 }
 
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 #[rustfmt::skip]
 pub enum TensorOp {
     #[strum(to_string = "dim")] Dim,
@@ -151,7 +151,7 @@ pub enum TensorOp {
     #[strum(to_string = "ref")] Ref,
 }
 
-#[derive(Clone, Copy, Debug, EnumString, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumString, IntoStaticStr)]
 #[allow(non_camel_case_types)]
 #[rustfmt::skip]
 pub enum MathConst {

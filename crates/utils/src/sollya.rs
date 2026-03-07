@@ -44,7 +44,7 @@ pub fn sollya(cmd: &[u8], args: &[&str]) -> Result<String, SollyaError> {
 }
 
 /// Exit status from a Sollya invocation.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExitStatus {
     Success = 0,
     InternalError = 1,
@@ -106,12 +106,14 @@ impl fmt::Display for SollyaError {
 }
 
 impl From<io::Error> for SollyaError {
+    #[inline]
     fn from(err: io::Error) -> Self {
         SollyaError::Io(err)
     }
 }
 
 impl From<FromUtf8Error> for SollyaError {
+    #[inline]
     fn from(_: FromUtf8Error) -> Self {
         SollyaError::Utf8
     }
@@ -135,6 +137,7 @@ impl fmt::Display for ScriptError {
 }
 
 impl From<SollyaError> for ScriptError {
+    #[inline]
     fn from(err: SollyaError) -> Self {
         ScriptError::Sollya(err)
     }

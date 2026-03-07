@@ -10,7 +10,7 @@ use crate::Mangle;
 
 /// A fixed-point number format with `width` total bits and a scaling factor of
 /// 2^`scale`.
-#[derive(Clone, Copy, Mangle)]
+#[derive(Clone, Copy, Debug, Mangle, PartialEq, Eq)]
 pub struct Format {
     pub scale: i32,
     pub width: u32,
@@ -39,10 +39,12 @@ impl Format {
         (self.scale <= 0).then_some((int_width, frac_width))
     }
 
+    #[inline]
     pub fn msb(&self) -> i64 {
         i64::from(self.scale) + i64::from(self.width) - 1
     }
 
+    #[inline]
     pub fn lsb(&self) -> i64 {
         i64::from(self.scale)
     }
@@ -59,6 +61,7 @@ impl Format {
     ///
     /// assert_eq!(format.vhdl(), (2, -1));
     /// ```
+    #[inline]
     pub fn vhdl(&self) -> (i64, i64) {
         (self.msb(), self.lsb())
     }
@@ -87,6 +90,7 @@ impl Format {
 }
 
 impl Default for Format {
+    #[inline]
     fn default() -> Self {
         Format {
             scale: 0,
@@ -127,6 +131,7 @@ impl FromStr for Format {
 pub struct ParseFormatError;
 
 impl From<ParseIntError> for ParseFormatError {
+    #[inline]
     fn from(_: ParseIntError) -> Self {
         ParseFormatError
     }

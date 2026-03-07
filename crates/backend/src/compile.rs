@@ -168,7 +168,7 @@ impl Builder<'_, '_> {
             _ => unreachable!(),
         };
 
-        let decl = if matches!(op, hir::TestOp::Or) {
+        let decl = if op == hir::TestOp::Or {
             self.builder.cm.importer.or()
         } else {
             self.builder.cm.importer.and()
@@ -325,7 +325,7 @@ impl Builder<'_, '_> {
                 self.compile_primitive_operation(decl, args)
             }
             hir::OpKind::Test(op) => {
-                if matches!(op, hir::TestOp::Not) {
+                if op == hir::TestOp::Not {
                     let decl = self.builder.cm.importer.not();
 
                     self.compile_primitive_operation(decl, args)

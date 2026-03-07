@@ -5,7 +5,7 @@ use calyx_libm_ast as ast;
 use super::Context;
 use super::{hir, index as idx};
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SollyaExpr {
     Variable,
     Number(idx::NumIdx),
@@ -14,7 +14,7 @@ pub enum SollyaExpr {
     Call(SollyaFn, idx::SollyaIdx),
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SollyaBinOp {
     Add,
     Sub,
@@ -58,7 +58,7 @@ impl TryFrom<hir::ArithOp> for SollyaBinOp {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[rustfmt::skip]
 pub enum SollyaFn {
     Sin,  Cos,   Tan,  Sinh,  Cosh,  Tanh,

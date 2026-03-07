@@ -16,12 +16,14 @@ enum Class {
 }
 
 /// A closed interval.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Interval {
     pub inf: Rational,
     pub sup: Rational,
 }
 
 impl Interval {
+    #[inline]
     pub fn new(inf: Rational, sup: Rational) -> Interval {
         Interval { inf, sup }
     }

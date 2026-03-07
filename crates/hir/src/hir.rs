@@ -9,6 +9,7 @@ pub use ast::{Constant, Id, MathConst, Rational, Symbol, TestOp};
 
 pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
 
+#[derive(Debug)]
 pub struct Definition {
     pub name: Option<Symbol>,
     pub args: idx::IndexRange<idx::ArgIdx>,
@@ -16,12 +17,14 @@ pub struct Definition {
     pub body: idx::ExprIdx,
 }
 
+#[derive(Debug)]
 pub struct Argument {
     pub name: Symbol,
     pub var: idx::VarIdx,
     pub scope: PackedOption<idx::ScopeIdx>,
 }
 
+#[derive(Debug)]
 pub enum ExprKind {
     Num(idx::NumIdx),
     Const(Constant),
@@ -32,26 +35,27 @@ pub enum ExprKind {
     While(While),
 }
 
+#[derive(Debug)]
 pub struct Expression {
     pub kind: ExprKind,
     pub scope: PackedOption<idx::ScopeIdx>,
     pub span: Span,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Number {
     pub value: Rational,
     pub span: Span,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum VarKind {
     Arg(idx::ArgIdx),
     Let(idx::ExprIdx),
     Mut,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ArithOp {
     Add,
     Sub,
@@ -85,7 +89,7 @@ impl TryFrom<ast::MathOp> for ArithOp {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum OpKind {
     Arith(ArithOp),
     Test(TestOp),
@@ -93,23 +97,27 @@ pub enum OpKind {
     Def(idx::DefIdx),
 }
 
+#[derive(Debug)]
 pub struct Operation {
     pub kind: OpKind,
     pub span: Span,
 }
 
+#[derive(Debug)]
 pub struct If {
     pub cond: idx::ExprIdx,
     pub if_true: idx::ExprIdx,
     pub if_false: idx::ExprIdx,
 }
 
+#[derive(Debug)]
 pub struct Let {
     pub writes: EntityList<idx::WriteIdx>,
     pub body: idx::ExprIdx,
     pub sequential: bool,
 }
 
+#[derive(Debug)]
 pub struct While {
     pub cond: idx::ExprIdx,
     pub inits: EntityList<idx::WriteIdx>,
@@ -118,29 +126,32 @@ pub struct While {
     pub sequential: bool,
 }
 
+#[derive(Debug)]
 pub struct Write {
     pub var: idx::VarIdx,
     pub val: idx::ExprIdx,
 }
 
+#[derive(Debug)]
 pub struct Scope {
     pub prop: Property,
     pub parent: PackedOption<idx::ScopeIdx>,
 }
 
+#[derive(Debug)]
 pub enum Property {
     Pre(idx::ExprIdx),
     Domain(Domain),
     Impl(Strategy),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Domain {
     pub left: idx::NumIdx,
     pub right: idx::NumIdx,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Strategy {
     Lut {
         size: u32,
@@ -151,18 +162,20 @@ pub enum Strategy {
     },
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span(usize, usize);
 
 impl Span {
     pub const NONE: Span = Span(usize::MAX, usize::MAX);
 
+    #[inline]
     pub fn new(start: usize, end: usize) -> Span {
         Span(start, end)
     }
 }
 
 impl From<ast::Span> for Span {
+    #[inline]
     fn from(value: ast::Span) -> Self {
         let range = Range::from(value);
 
