@@ -52,11 +52,12 @@ impl LookupTable<'_> {
         &self,
         cm: &mut ComponentManager,
     ) -> Result<ir::Id, Diagnostic> {
-        let diagnostic = |value| {
+        let diagnostic = |value, format: &Format| {
             Diagnostic::error()
-                .with_message("implementation error")
+                .with_message("overflow")
                 .with_note(format!(
-                    "generated constant {value} overflows the target format"
+                    "generated value {value} out of range for `{}`",
+                    format.fpcore(),
                 ))
         };
 
@@ -69,7 +70,7 @@ impl LookupTable<'_> {
                     iter::zip(row, self.data.formats).map(|(value, format)| {
                         value
                             .to_fixed_point(format)
-                            .ok_or_else(|| diagnostic(value))
+                            .ok_or_else(|| diagnostic(value, format))
                     }),
                     |bits| pack(bits, self.data.widths()),
                 )

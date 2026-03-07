@@ -53,7 +53,10 @@ impl Builder<'_, '_> {
                     .with_message("overflow")
                     .try_with_primary(
                         number.span,
-                        "value overflows target format",
+                        format!(
+                            "value out of range for `{}`",
+                            self.format.fpcore(),
+                        ),
                     ),
             );
 

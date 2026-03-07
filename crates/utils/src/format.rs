@@ -87,15 +87,30 @@ impl Format {
 
         QNotation(self)
     }
+
+    /// Returns an adapter for formatting `self` as an FPCore precision.
+    pub fn fpcore(&self) -> impl fmt::Display {
+        struct Precision<'a>(&'a Format);
+
+        impl fmt::Display for Precision<'_> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                let family = if self.0.is_signed { "fixed" } else { "ufixed" };
+
+                write!(f, "({} {} {})", family, self.0.scale, self.0.width)
+            }
+        }
+
+        Precision(self)
+    }
 }
 
 impl Default for Format {
     #[inline]
     fn default() -> Self {
         Format {
-            scale: 0,
+            scale: -16,
             width: 32,
-            is_signed: false,
+            is_signed: true,
         }
     }
 }
