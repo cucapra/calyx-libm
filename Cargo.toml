@@ -32,7 +32,7 @@ cranelift-entity = "0.123"
 itertools = "0.11"
 malachite = "0.4"
 pest = "2"
-pest_derive = "2"
+pest_derive = { version = "2", features = ["grammar-extras"] }
 pest_consume = "1"
 pretty = "0.12"
 smallvec = "1"

@@ -1,8 +1,12 @@
 WHITESPACE  = _{ " " | "\t" | NEWLINE }
 COMMENT     = _{ ";" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
 
-open    = _{ "(" }
-close   = _{ ")" }
+open = _{
+      ("(" ~ PUSH_LITERAL(")"))
+    | ("[" ~ PUSH_LITERAL("]"))
+}
+
+close = _{ POP }
 
 file = { SOI ~ fpcore* ~ EOI }
 
@@ -27,9 +31,9 @@ argument = {
     | (open ~ symbol ~ dimension+ ~ close)
 }
 
-binding     = { "[" ~ symbol ~ expr ~ "]" }
-mut_var     = { "[" ~ symbol ~ expr ~ expr ~ "]" }
-index_var   = { "[" ~ symbol ~ expr ~ "]" }
+binding     = { open ~ symbol ~ expr ~ close }
+mut_var     = { open ~ symbol ~ expr ~ expr ~ close }
+index_var   = { open ~ symbol ~ expr ~ close }
 
 mut_vars    = { mut_var* }
 index_vars  = { index_var* }
