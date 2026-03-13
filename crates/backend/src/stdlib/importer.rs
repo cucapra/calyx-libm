@@ -9,13 +9,10 @@ pub struct Importer {
 }
 
 impl Importer {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Importer {
-        let mut imports = ImportSet::new();
-
-        imports.insert(Import::Core);
-
-        Importer { imports }
+        Importer {
+            imports: ImportSet::new(),
+        }
     }
 
     pub fn import(&mut self, file: Import) {
@@ -27,14 +24,20 @@ impl Importer {
     }
 
     pub fn not(&mut self) -> &'static Primitive<'static> {
+        self.import(Import::Core);
+
         &primitives::core::STD_NOT
     }
 
     pub fn and(&mut self) -> &'static Primitive<'static> {
+        self.import(Import::Core);
+
         &primitives::core::STD_AND
     }
 
     pub fn or(&mut self) -> &'static Primitive<'static> {
+        self.import(Import::Core);
+
         &primitives::core::STD_OR
     }
 
@@ -105,11 +108,9 @@ impl Importer {
     }
 
     pub fn neg(&mut self, _format: &Format) -> &'static Primitive<'static> {
-        let primitive = &primitives::numbers::NUM_SNEG;
+        self.import(Import::Numbers);
 
-        self.import(primitive.import);
-
-        primitive
+        &primitives::numbers::NUM_SNEG
     }
 
     pub fn abs(&mut self, format: &Format) -> &'static Primitive<'static> {

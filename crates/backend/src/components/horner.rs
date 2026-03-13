@@ -127,6 +127,7 @@ impl ComponentBuilder for Horner<'_> {
         let mut component = ir::Component::new(name, ports, true, false, None);
         let mut builder = IrBuilder::new(&mut component, cm);
 
+        builder.cm.import(Import::Core);
         builder.cm.import(Import::Numbers);
 
         assert!(self.spec.sum_scale <= self.spec.lut_scale);

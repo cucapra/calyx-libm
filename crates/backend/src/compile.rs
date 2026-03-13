@@ -44,7 +44,6 @@ struct Builder<'a, 'src> {
 
 impl Builder<'_, '_> {
     fn compile_number(&mut self, number: &hir::Number) -> Option<CompiledExpr> {
-        let width = u64::from(self.format.width);
         let rounded = (&number.value).round_convergent(self.format.lsb());
 
         let Some(value) = rounded.to_fixed_point(self.format) else {
@@ -63,16 +62,14 @@ impl Builder<'_, '_> {
             return None;
         };
 
-        let cell = self.builder.big_constant(&value, width);
+        let cell = self.builder.big_constant(&value, self.format.width.into());
         let port = cell.borrow().get(self.builder.cm.ids.out);
 
         Some(CompiledExpr::from_port(port))
     }
 
     fn compile_boolean(&mut self, value: bool) -> Option<CompiledExpr> {
-        let params = [1, u64::from(value)];
-
-        let cell = self.builder.add_primitive("c", "std_const", &params);
+        let cell = self.builder.std_const(value.into(), 1);
         let port = cell.borrow().get(self.builder.cm.ids.out);
 
         Some(CompiledExpr::from_port(port))
@@ -354,11 +351,11 @@ impl Builder<'_, '_> {
         let true_branch = self.compile_expression(expr.if_true)?;
         let false_branch = self.compile_expression(expr.if_false)?;
 
-        let params = [true_branch.out.borrow().width];
+        let width = true_branch.out.borrow().width;
 
         match (&true_branch.control, &false_branch.control) {
             (ir::Control::Empty(_), ir::Control::Empty(_)) => {
-                let mux = self.builder.add_primitive("mux", "std_mux", &params);
+                let mux = self.builder.std_mux(width);
                 let out = mux.borrow().get(self.builder.cm.ids.out);
 
                 let inputs = [
@@ -385,7 +382,7 @@ impl Builder<'_, '_> {
                 })
             }
             _ => {
-                let reg = self.builder.add_primitive("r", "std_reg", &params);
+                let reg = self.builder.std_reg(width);
                 let out = reg.borrow().get(self.builder.cm.ids.out);
 
                 let store_true = self.builder.invoke_with(
@@ -433,8 +430,7 @@ impl Builder<'_, '_> {
                 let write = &self.hir[write];
                 let expr = self.compile_expression(write.val)?;
 
-                let params = [expr.out.borrow().width];
-                let reg = self.builder.add_primitive("r", "std_reg", &params);
+                let reg = self.builder.std_reg(expr.out.borrow().width);
 
                 let invoke = self.builder.invoke_with(
                     reg.clone(),
@@ -474,8 +470,7 @@ impl Builder<'_, '_> {
                 let write = &self.hir[write];
                 let init = self.compile_expression(write.val)?;
 
-                let params = [init.out.borrow().width];
-                let reg = self.builder.add_primitive("r", "std_reg", &params);
+                let reg = self.builder.std_reg(init.out.borrow().width);
 
                 let invoke = self.builder.invoke_with(
                     reg.clone(),

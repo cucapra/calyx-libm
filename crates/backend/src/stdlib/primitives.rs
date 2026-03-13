@@ -74,7 +74,7 @@ impl Primitive<'_> {
 pub mod compile {
     use super::*;
 
-    pub const IMPORT: Import = Import::Compile;
+    pub const IMPORT: Import = Import::Core; // access through transitive import
 
     pub const STD_WIRE: Primitive = Primitive {
         name: "std_wire",

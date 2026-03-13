@@ -12,7 +12,7 @@ use calyx_libm_utils::rational::FixedPoint;
 use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{ComponentBuilder, ComponentManager, Ids, Rom};
-use crate::IrBuilder;
+use crate::{Import, IrBuilder};
 
 /// Packs a sequence of values into a single bit vector. The first element of
 /// the sequence occupies the most-significant position.
@@ -136,6 +136,8 @@ impl ComponentBuilder for LookupTable<'_> {
 
         let rom = builder.add_primitive("rom", rom, &[]);
         let subtrahend = builder.big_constant(&self.spec.subtrahend, global);
+
+        builder.cm.import(Import::Core);
 
         structure!(builder;
             let sub = prim std_sub(global);

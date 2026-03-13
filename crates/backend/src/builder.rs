@@ -3,7 +3,8 @@
 use calyx_ir as ir;
 use malachite::Natural;
 
-use crate::components::{ComponentManager, Constant};
+use crate::components::Constant;
+use crate::{ComponentManager, Import};
 
 pub struct IrBuilder<'a> {
     pub component: &'a mut ir::Component,
@@ -163,6 +164,24 @@ impl<'a> IrBuilder<'a> {
             guard: Box::new(guard),
             attributes: Default::default(),
         }
+    }
+
+    pub fn std_reg(&mut self, width: u64) -> ir::RRC<ir::Cell> {
+        self.cm.import(Import::Core);
+
+        self.add_primitive("r", "std_reg", &[width])
+    }
+
+    pub fn std_mux(&mut self, width: u64) -> ir::RRC<ir::Cell> {
+        self.cm.import(Import::Core);
+
+        self.add_primitive("mux", "std_mux", &[width])
+    }
+
+    pub fn std_const(&mut self, value: u64, width: u64) -> ir::RRC<ir::Cell> {
+        self.cm.import(Import::Core);
+
+        self.add_primitive("c", "std_const", &[width, value])
     }
 
     pub fn big_constant(

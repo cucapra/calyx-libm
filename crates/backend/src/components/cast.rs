@@ -59,6 +59,8 @@ impl ComponentBuilder for Cast<'_> {
 
                 ("ext", "std_signext")
             } else {
+                builder.cm.import(Import::Core);
+
                 ("pad", "std_pad")
             };
 
@@ -99,6 +101,8 @@ impl ComponentBuilder for Cast<'_> {
         };
 
         let (cell, port) = if msb_out < msb_in || lsb_out > lsb_in {
+            builder.cm.import(Import::Core);
+
             let in_width = width;
             let out_width = u64::from(self.to.width);
 
