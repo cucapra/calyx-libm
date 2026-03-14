@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: couldn't bound ranges
+  ┌─ tests/errors/backend/ranges/undefined.fpcore:4:2
+  │
+4 │  (sqrt x))
+  │  ^^^^^^^^ expression not total
+

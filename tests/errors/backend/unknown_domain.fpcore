@@ -1,0 +1,3 @@
+(FPCore (x)
+ :calyx-impl (lut 64)
+ (sin x))

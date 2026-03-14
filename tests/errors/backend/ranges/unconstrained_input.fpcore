@@ -1,0 +1,4 @@
+; --range-analysis interval
+(FPCore (x y)
+ :pre (and (< -1 x 1) (<= 0 y))
+ (* x (sqrt y)))

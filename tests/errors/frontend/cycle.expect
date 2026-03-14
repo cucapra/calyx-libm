@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: cyclic definition
+  ┌─ tests/errors/frontend/cycle.fpcore:4:12
+  │
+4 │      (* n (factorial (- n 1)))))
+  │            ^^^^^^^^^ cycle introduced by this call
+

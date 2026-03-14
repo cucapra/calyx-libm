@@ -1,0 +1,4 @@
+(FPCore (x)
+ (let* ([y (* x x)]
+        [z (* y y)])
+   z))

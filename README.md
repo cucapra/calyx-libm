@@ -23,9 +23,14 @@ plugins = ["<repository root>/tools/fud/fpcore.rhai"]
 base = "<repository root>"
 ```
 
+### Running Tests
+
+The frontend is tested with [runt][runt]. Install it with `cargo install runt`,
+then run the tests with `runt`.
+
 ## Usage
 
-Input programs are written using a subset of the [FPCore 2.0](fpcore) format.
+Input programs are written using a subset of the [FPCore 2.0][fpcore] format.
 FPCore is a simple S-expression language designed to express numerical
 computations. For example, `sinc` might be written as:
 
@@ -117,5 +122,6 @@ implemented as a single polynomial approximation. Enable this feature with
 [calyx]: https://calyxir.org/
 [fpcore]: https://fpbench.org/spec/fpcore-2.0.html
 [fud2]: https://docs.calyxir.org/running-calyx/fud2/index.html
+[runt]: https://github.com/rachitnigam/runt
 [rust]: https://doc.rust-lang.org/cargo/getting-started/installation.html
 [sollya]: https://www.sollya.org/

@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: overflow
+  ┌─ tests/errors/backend/overflow.fpcore:1:12
+  │
+1 │ (FPCore () 0x1p128)
+  │            ^^^^^^^ value out of range for `(fixed -16 32)`
+

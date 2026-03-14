@@ -1,0 +1,11 @@
+---CODE---
+1
+---STDERR---
+error: mismatched types
+  ┌─ tests/errors/frontend/type/update.fpcore:5:23
+  │
+5 │     [continue (> i 0) i])
+  │               ------- ^ expected boolean, found number
+  │               │        
+  │               variable initialized to type `boolean`
+

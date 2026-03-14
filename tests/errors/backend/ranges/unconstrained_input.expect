@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: precondition is too weak
+  ┌─ tests/errors/backend/ranges/unconstrained_input.fpcore:2:12
+  │
+2 │ (FPCore (x y)
+  │            ^ argument has unbounded domain
+

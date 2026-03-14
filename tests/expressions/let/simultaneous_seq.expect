@@ -1,0 +1,45 @@
+import "primitives/core.futil";
+import "primitives/binary_operators.futil";
+import "primitives/math.futil";
+component main(x: 8, y: 8) -> (out: 8) {
+  cells {
+    mul = std_mult_pipe(8);
+    r = std_reg(8);
+    mul0 = std_mult_pipe(8);
+    r0 = std_reg(8);
+    sqrt = sqrt(8);
+    add = std_add(8);
+  }
+  wires {
+    comb group args {
+      add.left = r.out;
+      add.right = r0.out;
+    }
+    out = sqrt.out;
+  }
+  control {
+    seq {
+      par {
+        invoke mul(
+          left = x,
+          right = x
+        )();
+        invoke mul0(
+          left = y,
+          right = y
+        )();
+      }
+      par {
+        invoke r(
+          in = mul.out
+        )();
+        invoke r0(
+          in = mul0.out
+        )();
+      }
+      invoke sqrt(
+        in = add.out
+      )() with args;
+    }
+  }
+}

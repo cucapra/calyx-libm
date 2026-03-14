@@ -1,0 +1,4 @@
+(FPCore (x y)
+ (let ([x (* x x)]
+       [y (* y y)])
+   (sqrt (+ x y))))

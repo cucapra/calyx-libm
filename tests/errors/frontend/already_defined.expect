@@ -1,0 +1,12 @@
+---CODE---
+1
+---STDERR---
+error: redefinition of operator `foo`
+  ┌─ tests/errors/frontend/already_defined.fpcore:4:9
+  │
+1 │ (FPCore foo (x)
+  │         --- name first defined here
+  ·
+4 │ (FPCore foo (y)
+  │         ^^^ name already defined
+

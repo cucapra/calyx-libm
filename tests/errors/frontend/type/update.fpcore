@@ -1,0 +1,6 @@
+(FPCore (n)
+ (while* continue
+   ([i n (- i 1)]
+    [acc i (+ acc i)]
+    [continue (> i 0) i])
+   acc))

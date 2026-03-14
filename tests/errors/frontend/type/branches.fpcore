@@ -1,0 +1,5 @@
+(FPCore (x)
+ (if (> x 0)
+     (let ([c 1/2])
+       (* c x))
+     FALSE))

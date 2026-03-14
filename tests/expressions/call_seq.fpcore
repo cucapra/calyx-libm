@@ -1,0 +1,5 @@
+(FPCore (x)
+ (square x))
+
+(FPCore square (x)
+ (* x x))

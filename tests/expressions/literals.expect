@@ -1,0 +1,21 @@
+comb component c1() -> (out: 8) {
+  cells {
+  }
+  wires {
+    out = 8'd2;
+  }
+}
+comb component c2() -> (out: 8) {
+  cells {
+  }
+  wires {
+    out = 8'd2;
+  }
+}
+comb component c3() -> (out: 8) {
+  cells {
+  }
+  wires {
+    out = 8'd3;
+  }
+}

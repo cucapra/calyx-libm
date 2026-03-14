@@ -1,0 +1,33 @@
+import "primitives/core.futil";
+comb component main(x: 8) -> (out: 8) {
+  cells {
+    eq = std_eq(8);
+    eq0 = std_eq(8);
+    eq1 = std_eq(8);
+    eq2 = std_eq(8);
+    dis = std_or(1);
+    dis0 = std_or(1);
+    dis1 = std_or(1);
+    mux = std_mux(8);
+  }
+  wires {
+    mux.cond = dis1.out;
+    mux.tru = 8'd1;
+    mux.fal = 8'd0;
+    eq.left = x;
+    eq.right = 8'd2;
+    eq0.left = x;
+    eq0.right = 8'd3;
+    eq1.left = x;
+    eq1.right = 8'd5;
+    eq2.left = x;
+    eq2.right = 8'd7;
+    dis.left = eq.out;
+    dis.right = eq0.out;
+    dis0.left = eq1.out;
+    dis0.right = eq2.out;
+    dis1.left = dis.out;
+    dis1.right = dis0.out;
+    out = mux.out;
+  }
+}

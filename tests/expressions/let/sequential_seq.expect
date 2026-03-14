@@ -1,0 +1,31 @@
+import "primitives/core.futil";
+import "primitives/binary_operators.futil";
+component main(x: 8) -> (out: 8) {
+  cells {
+    mul = std_mult_pipe(8);
+    r = std_reg(8);
+    mul0 = std_mult_pipe(8);
+    r0 = std_reg(8);
+  }
+  wires {
+    out = r0.out;
+  }
+  control {
+    seq {
+      invoke mul(
+        left = x,
+        right = x
+      )();
+      invoke r(
+        in = mul.out
+      )();
+      invoke mul0(
+        left = r.out,
+        right = r.out
+      )();
+      invoke r0(
+        in = mul0.out
+      )();
+    }
+  }
+}

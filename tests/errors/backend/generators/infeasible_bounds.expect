@@ -1,0 +1,11 @@
+---CODE---
+1
+---STDERR---
+error: operator `exp` has infeasible domain
+  ┌─ tests/errors/backend/generators/infeasible_bounds.fpcore:5:3
+  │
+5 │  (exp x))
+  │   ^^^ operator has infeasible domain
+  │
+  = endpoint -1 is out of bounds
+

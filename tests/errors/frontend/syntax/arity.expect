@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: syntax error
+  ┌─ tests/errors/frontend/syntax/arity.fpcore:2:15
+  │
+2 │  (if (< x 0) 0))
+  │               ^ expected expr or dot
+

@@ -1,0 +1,5 @@
+; --format Q8.2
+(FPCore (x)
+ :calyx-domain (-1 1)
+ :calyx-impl (lut 16)
+ (exp x))

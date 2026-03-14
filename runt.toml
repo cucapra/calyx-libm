@@ -1,0 +1,22 @@
+ver = "0.4.1"
+
+[[tests]]
+name = "errors"
+paths = [
+    "tests/errors/backend/*.fpcore",
+    "tests/errors/frontend/**/*.fpcore",
+]
+cmd = "./target/debug/calyx-libm --format Q16.16 {}"
+
+[[tests]]
+name = "errors"
+paths = [
+    "tests/errors/backend/generators/*.fpcore",
+    "tests/errors/backend/ranges/*.fpcore",
+]
+cmd = "./target/debug/calyx-libm $(head -n 1 {} | cut -c 2-) {}"
+
+[[tests]]
+name = "expressions"
+paths = ["tests/expressions/**/*.fpcore"]
+cmd = "./target/debug/calyx-libm --format UQ8.0 {}"

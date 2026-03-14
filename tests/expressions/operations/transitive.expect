@@ -1,0 +1,21 @@
+import "primitives/core.futil";
+comb component main(x: 8, y: 8, z: 8) -> (out: 8) {
+  cells {
+    lt = std_lt(8);
+    lt0 = std_lt(8);
+    con = std_and(1);
+    mux = std_mux(8);
+  }
+  wires {
+    mux.cond = con.out;
+    mux.tru = 8'd1;
+    mux.fal = 8'd0;
+    lt.left = x;
+    lt.right = y;
+    lt0.left = y;
+    lt0.right = z;
+    con.left = lt.out;
+    con.right = lt0.out;
+    out = mux.out;
+  }
+}

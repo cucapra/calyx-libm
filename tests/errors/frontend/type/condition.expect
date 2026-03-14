@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: mismatched types
+  ┌─ tests/errors/frontend/type/condition.fpcore:2:6
+  │
+2 │  (if x (/ (sin x) x) 1.0))
+  │      ^ expected boolean, found number
+

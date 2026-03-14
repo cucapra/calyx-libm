@@ -1,0 +1,5 @@
+(FPCore (x)
+ (double x))
+
+(FPCore double (x)
+ (+ x x))

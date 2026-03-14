@@ -1,0 +1,36 @@
+import "primitives/core.futil";
+import "primitives/math.futil";
+component main(x: 8) -> (out: 8) {
+  cells {
+    ge = std_ge(8);
+    r = std_reg(1);
+    mux = std_mux(8);
+    r0 = std_reg(8);
+    sqrt = sqrt(8);
+  }
+  wires {
+    comb group expr {
+      ge.left = x;
+      ge.right = 8'd0;
+    }
+    comb group expr0 {
+      mux.cond = r.out;
+      mux.tru = x;
+      mux.fal = 8'd0;
+    }
+    out = sqrt.out;
+  }
+  control {
+    seq {
+      invoke r(
+        in = ge.out
+      )() with expr;
+      invoke r0(
+        in = mux.out
+      )() with expr0;
+      invoke sqrt(
+        in = r0.out
+      )();
+    }
+  }
+}

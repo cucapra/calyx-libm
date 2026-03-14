@@ -1,0 +1,28 @@
+import "primitives/binary_operators.futil";
+component square(x: 8) -> (out: 8) {
+  cells {
+    mul = std_mult_pipe(8);
+  }
+  wires {
+    out = mul.out;
+  }
+  control {
+    invoke mul(
+      left = x,
+      right = x
+    )();
+  }
+}
+component main(x: 8) -> (out: 8) {
+  cells {
+    square = square();
+  }
+  wires {
+    out = square.out;
+  }
+  control {
+    invoke square(
+      x = x
+    )();
+  }
+}

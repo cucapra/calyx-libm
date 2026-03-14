@@ -1,0 +1,11 @@
+---CODE---
+1
+---STDERR---
+error: operator `sin` has unknown domain
+  ┌─ tests/errors/backend/unknown_domain.fpcore:3:3
+  │
+3 │  (sin x))
+  │   ^^^ unknown domain
+  │
+  = help: add a `:calyx-domain` annotation or enable range analysis
+

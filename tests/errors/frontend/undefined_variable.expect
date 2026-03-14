@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: undefined name `pi`
+  ┌─ tests/errors/frontend/undefined_variable.fpcore:3:19
+  │
+3 │        [y (sin (* pi x))])
+  │                   ^^ undefined name
+

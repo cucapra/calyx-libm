@@ -1,0 +1,23 @@
+import "primitives/core.futil";
+component main(x: 8, y: 8) -> (out: 8) {
+  cells {
+    r = std_reg(8);
+    r0 = std_reg(8);
+    sub = std_sub(8);
+  }
+  wires {
+    sub.left = r.out;
+    sub.right = r0.out;
+    out = sub.out;
+  }
+  control {
+    par {
+      invoke r(
+        in = y
+      )();
+      invoke r0(
+        in = x
+      )();
+    }
+  }
+}

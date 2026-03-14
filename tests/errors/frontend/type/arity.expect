@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: type error
+  ┌─ tests/errors/frontend/type/arity.fpcore:2:3
+  │
+2 │  (sqrt x y))
+  │   ^^^^ expected 1 argument, found 2
+

@@ -1,0 +1,5 @@
+(FPCore foo (x)
+ (+ x x))
+
+(FPCore foo (y)
+ (* 2 y))

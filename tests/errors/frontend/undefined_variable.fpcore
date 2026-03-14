@@ -1,0 +1,4 @@
+(FPCore (x)
+ (let ([pi 3.14159]
+       [y (sin (* pi x))])
+   y))

@@ -1,0 +1,2 @@
+(FPCore (x)
+ (if x (/ (sin x) x) 1.0))

@@ -1,0 +1,11 @@
+---CODE---
+1
+---STDERR---
+error: no implementation specified for operator `sin`
+  ┌─ tests/errors/backend/unknown_impl.fpcore:3:3
+  │
+3 │  (sin x))
+  │   ^^^ no implementation specified
+  │
+  = help: add a `:calyx-impl` annotation
+

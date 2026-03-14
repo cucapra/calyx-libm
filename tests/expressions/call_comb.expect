@@ -1,0 +1,20 @@
+import "primitives/core.futil";
+comb component double(x: 8) -> (out: 8) {
+  cells {
+    add = std_add(8);
+  }
+  wires {
+    add.left = x;
+    add.right = x;
+    out = add.out;
+  }
+}
+comb component main(x: 8) -> (out: 8) {
+  cells {
+    double = double();
+  }
+  wires {
+    double.x = x;
+    out = double.out;
+  }
+}

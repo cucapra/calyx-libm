@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: syntax error
+  ┌─ tests/errors/frontend/syntax/overflow.fpcore:2:25
+  │
+2 │  (! :precision (fixed 0 18446744073709551616)
+  │                         ^^^^^^^^^^^^^^^^^^^^ number too large to fit in target type
+

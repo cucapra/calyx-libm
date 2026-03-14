@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: couldn't bound ranges
+  ┌─ tests/errors/backend/ranges/infinite.fpcore:4:2
+  │
+4 │  (/ 1 x))
+  │  ^^^^^^^ expression has unbounded range
+

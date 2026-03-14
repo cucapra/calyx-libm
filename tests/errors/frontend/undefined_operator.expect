@@ -1,0 +1,9 @@
+---CODE---
+1
+---STDERR---
+error: undefined operator `foo`
+  ┌─ tests/errors/frontend/undefined_operator.fpcore:2:3
+  │
+2 │  (foo x))
+  │   ^^^ undefined operator
+

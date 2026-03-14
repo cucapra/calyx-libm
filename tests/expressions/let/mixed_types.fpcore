@@ -1,0 +1,4 @@
+(FPCore (x)
+ (let* ([b (>= x 0)]
+        [x (if b x 0)])
+   (sqrt x)))

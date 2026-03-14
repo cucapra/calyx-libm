@@ -1,0 +1,4 @@
+; --range-analysis interval
+(FPCore (x)
+ :pre (< 0 x 1)
+ (/ 1 x))
