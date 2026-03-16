@@ -5,7 +5,7 @@ use calyx_libm_ast as ast;
 use super::Context;
 use super::{hir, index as idx};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SollyaExpr {
     Variable,
     Number(idx::NumIdx),

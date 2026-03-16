@@ -126,7 +126,7 @@ pub struct Number {
     pub span: Span,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Symbol {
     pub id: Id,
     pub span: Span,
@@ -146,7 +146,7 @@ pub struct Operation {
     pub span: Span,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Constant {
     Math(MathConst),
     Bool(bool),

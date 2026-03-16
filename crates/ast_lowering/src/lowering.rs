@@ -58,7 +58,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
         self.parent = scope;
 
         let lowered = hir::Definition {
-            name: def.name.clone(),
+            name: def.name,
             args,
             scope,
             body: self.lower_expression(&def.body)?,
@@ -93,7 +93,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
         let scope = self.lower_properties(&arg.props)?;
 
         let lowered = hir::Argument {
-            name: arg.var.clone(),
+            name: arg.var,
             var: self.ctx.vars.next_key(),
             scope,
         };

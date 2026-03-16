@@ -202,6 +202,18 @@ impl<'a> IrBuilder<'a> {
         }
     }
 
+    pub fn with<S>(
+        &mut self,
+        prefix: S,
+        assignments: Vec<ir::Assignment<ir::Nothing>>,
+    ) -> Option<ir::RRC<ir::CombGroup>>
+    where
+        S: Into<ir::Id>,
+    {
+        (!assignments.is_empty())
+            .then(|| self.add_comb_group(prefix, assignments))
+    }
+
     pub fn invoke_with<S>(
         &mut self,
         component: ir::RRC<ir::Cell>,
@@ -212,8 +224,7 @@ impl<'a> IrBuilder<'a> {
     where
         S: Into<ir::Id>,
     {
-        let comb_group = (!assignments.is_empty())
-            .then(|| self.add_comb_group(prefix, assignments));
+        let comb_group = self.with(prefix, assignments);
 
         ir::Control::Invoke(ir::Invoke {
             comp: component,

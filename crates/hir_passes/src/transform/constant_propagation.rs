@@ -40,10 +40,13 @@ impl Visitor for ConstantPropagation {
             }) => {
                 visitor::visit_if(self, cond, if_true, if_false, ctx)?;
 
-                if let hir::ExprKind::Num(first) = ctx[if_true].kind
-                    && let hir::ExprKind::Num(second) = ctx[if_false].kind
-                    && ctx[first].value == ctx[second].value
+                if let hir::ExprKind::Const(hir::Constant::Bool(cond)) =
+                    ctx[cond].kind
                 {
+                    let branch = if cond { if_true } else { if_false };
+
+                    ctx[idx] = ctx[branch];
+                } else if are_equal_constants(if_true, if_false, ctx) {
                     propagate(idx, if_true, ctx);
                 }
 
@@ -73,14 +76,24 @@ impl Visitor for ConstantPropagation {
     }
 }
 
-fn propagate(to: hir::ExprIdx, from: hir::ExprIdx, ctx: &mut hir::Context) {
-    let from = &ctx[from];
+fn are_equal_constants(
+    a: hir::ExprIdx,
+    b: hir::ExprIdx,
+    ctx: &hir::Context,
+) -> bool {
+    match (ctx[a].kind, ctx[b].kind) {
+        (hir::ExprKind::Num(a), hir::ExprKind::Num(b)) => {
+            ctx[a].value == ctx[b].value
+        }
+        (hir::ExprKind::Const(a), hir::ExprKind::Const(b)) => a == b,
+        _ => false,
+    }
+}
 
-    if let hir::ExprKind::Num(num) = from.kind {
-        ctx[to] = hir::Expression {
-            kind: hir::ExprKind::Num(num),
-            scope: from.scope,
-            span: from.span,
-        };
+fn propagate(dst: hir::ExprIdx, src: hir::ExprIdx, ctx: &mut hir::Context) {
+    let src = &ctx[src];
+
+    if let hir::ExprKind::Num(_) | hir::ExprKind::Const(_) = src.kind {
+        ctx[dst] = *src;
     }
 }

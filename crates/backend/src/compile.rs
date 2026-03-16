@@ -399,12 +399,11 @@ impl Builder<'_, '_> {
                     false_branch.assignments,
                 );
 
-                let group =
-                    self.builder.add_comb_group("cond", cond.assignments);
+                let group = self.builder.with("cond", cond.assignments);
 
                 let conditional = ir::Control::if_(
                     cond.out,
-                    Some(group),
+                    group,
                     Box::new(IrBuilder::seq([true_branch.control, store_true])),
                     Box::new(IrBuilder::seq([
                         false_branch.control,
@@ -506,7 +505,7 @@ impl Builder<'_, '_> {
             })
             .collect::<Option<_>>()?;
 
-        let group = self.builder.add_comb_group("cond", cond.assignments);
+        let group = self.builder.with("cond", cond.assignments);
 
         let control = if expr.sequential {
             IrBuilder::seq(
@@ -514,7 +513,7 @@ impl Builder<'_, '_> {
                     IrBuilder::clone_control(&cond.control),
                     ir::Control::while_(
                         cond.out,
-                        Some(group),
+                        group,
                         Box::new(IrBuilder::seq(
                             itertools::interleave(updates, update_stores)
                                 .chain(iter::once(cond.control)),
@@ -530,7 +529,7 @@ impl Builder<'_, '_> {
                 IrBuilder::clone_control(&cond.control),
                 ir::Control::while_(
                     cond.out,
-                    Some(group),
+                    group,
                     Box::new(IrBuilder::seq([
                         IrBuilder::par(updates),
                         IrBuilder::par(update_stores),

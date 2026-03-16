@@ -9,7 +9,7 @@ pub use ast::{Constant, Id, MathConst, Rational, Symbol, TestOp};
 
 pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Definition {
     pub name: Option<Symbol>,
     pub args: idx::IndexRange<idx::ArgIdx>,
@@ -17,14 +17,14 @@ pub struct Definition {
     pub body: idx::ExprIdx,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Argument {
     pub name: Symbol,
     pub var: idx::VarIdx,
     pub scope: PackedOption<idx::ScopeIdx>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum ExprKind {
     Num(idx::NumIdx),
     Const(Constant),
@@ -35,7 +35,7 @@ pub enum ExprKind {
     While(While),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Expression {
     pub kind: ExprKind,
     pub scope: PackedOption<idx::ScopeIdx>,
@@ -55,7 +55,7 @@ pub enum VarKind {
     Mut,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ArithOp {
     Add,
     Sub,
@@ -97,27 +97,27 @@ pub enum OpKind {
     Def(idx::DefIdx),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Operation {
     pub kind: OpKind,
     pub span: Span,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct If {
     pub cond: idx::ExprIdx,
     pub if_true: idx::ExprIdx,
     pub if_false: idx::ExprIdx,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Let {
     pub writes: EntityList<idx::WriteIdx>,
     pub body: idx::ExprIdx,
     pub sequential: bool,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct While {
     pub cond: idx::ExprIdx,
     pub inits: EntityList<idx::WriteIdx>,
@@ -126,19 +126,19 @@ pub struct While {
     pub sequential: bool,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Write {
     pub var: idx::VarIdx,
     pub val: idx::ExprIdx,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Scope {
     pub prop: Property,
     pub parent: PackedOption<idx::ScopeIdx>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Property {
     Pre(idx::ExprIdx),
     Domain(Domain),
