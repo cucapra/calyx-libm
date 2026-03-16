@@ -1,0 +1,45 @@
+import "primitives/core.futil";
+component main(n: 8) -> (out: 8) {
+  cells {
+    r = std_reg(8);
+    r0 = std_reg(8);
+    lt = std_lt(8);
+    add = std_add(8);
+    add0 = std_add(8);
+  }
+  wires {
+    comb group update {
+      add.left = r.out;
+      add.right = 8'd1;
+    }
+    comb group update0 {
+      add0.left = r0.out;
+      add0.right = r.out;
+    }
+    comb group cond {
+      lt.left = r.out;
+      lt.right = n;
+    }
+    out = r0.out;
+  }
+  control {
+    seq {
+      invoke r(
+        in = 8'd0
+      )();
+      invoke r0(
+        in = r.out
+      )();
+      while lt.out with cond {
+        seq {
+          invoke r(
+            in = add.out
+          )() with update;
+          invoke r0(
+            in = add0.out
+          )() with update0;
+        }
+      }
+    }
+  }
+}

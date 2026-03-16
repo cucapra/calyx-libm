@@ -1,0 +1,9 @@
+(FPCore (n)
+ (while (<= i (sqrt n))
+   ([i 1 (+ i 1)]
+    [d 0 (if (== (* (/ n i) i) n)
+             (if (== (* i i) n)
+                 (+ d 1)
+                 (+ d 2))
+             d)])
+   d))

@@ -1,0 +1,57 @@
+import "primitives/core.futil";
+import "primitives/binary_operators.futil";
+component main(n: 8) -> (out: 8) {
+  cells {
+    mul = std_mult_pipe(8);
+    div = std_div_pipe(8);
+    eq = std_eq(8);
+    div0 = std_div_pipe(8);
+    add = std_add(8);
+    mul0 = std_mult_pipe(8);
+    r = std_reg(8);
+  }
+  wires {
+    comb group branch {
+      add.left = mul0.out;
+      add.right = 8'd1;
+    }
+    comb group cond {
+      eq.left = mul.out;
+      eq.right = n;
+    }
+    out = r.out;
+  }
+  control {
+    seq {
+      invoke div(
+        left = n,
+        right = 8'd2
+      )();
+      invoke mul(
+        left = div.out_quotient,
+        right = 8'd2
+      )();
+      if eq.out with cond {
+        seq {
+          invoke div0(
+            left = n,
+            right = 8'd2
+          )();
+          invoke r(
+            in = div0.out_quotient
+          )();
+        }
+      } else {
+        seq {
+          invoke mul0(
+            left = 8'd3,
+            right = n
+          )();
+          invoke r(
+            in = add.out
+          )() with branch;
+        }
+      }
+    }
+  }
+}

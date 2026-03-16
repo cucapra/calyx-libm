@@ -1,0 +1,4 @@
+(FPCore (x y)
+ (if (< x y)
+     (- y x)
+     (- x y)))
