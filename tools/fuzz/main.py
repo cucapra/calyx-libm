@@ -8,10 +8,10 @@ from tempfile import TemporaryDirectory
 
 from fixedpoint import FixedPoint
 from fpcorelib import FPCore
-from fpcorelib.rand import random_fpcore
 
 from interp import LIB_FIXED_POINT
 from qformat import QFormat, RoundingMode
+from rand import random_fpcore
 
 
 class Simulator(Enum):

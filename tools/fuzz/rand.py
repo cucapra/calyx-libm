@@ -2,7 +2,8 @@ import random
 from collections.abc import Callable
 from typing import Any, Optional
 
-from .ast import Argument, Expr, FPCore, Num, Number, Operation, Symbol
+from fpcorelib import ast
+from fpcorelib.ast import Expr, FPCore, Num, Number, Operation, Symbol
 
 Dist = Callable[[], Num]
 
@@ -35,7 +36,8 @@ def random_expr(vars: list[str], lpi: float, dist: Dist[Num]) -> Expr[Num]:
 def random_fpcore(
     name: Optional[str], args: list[str], lpi: float, dist: Dist[Num]
 ) -> FPCore[Num]:
-    argv = [Argument[Num](arg, []) for arg in args]
+    argv = [ast.Argument[Num](arg, []) for arg in args]
+    props = [ast.Property(':calyx-impl', Symbol[Num]('iterative'))]
     body = random_expr(args, lpi, dist)
 
-    return FPCore(name, argv, [], body)
+    return FPCore(name, argv, props, body)

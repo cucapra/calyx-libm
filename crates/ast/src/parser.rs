@@ -464,8 +464,13 @@ impl FPCoreParser {
         ))
     }
 
+    fn iterative(_input: Node) -> ParseResult<()> {
+        Ok(())
+    }
+
     fn strategy(input: Node) -> ParseResult<meta::CalyxImpl> {
         Ok(match_nodes!(input.into_children();
+            [iterative(_)] => meta::CalyxImpl::Iterative,
             [lut(size)] => meta::CalyxImpl::Lut { size },
             [poly(strategy)] => strategy,
         ))

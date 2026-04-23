@@ -356,6 +356,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
             }
             ast::PropKind::CalyxImpl(strategy) => {
                 let strategy = match *strategy {
+                    meta::CalyxImpl::Iterative => hir::Strategy::Iterative,
                     meta::CalyxImpl::Lut { size } => {
                         hir::Strategy::Lut { size }
                     }

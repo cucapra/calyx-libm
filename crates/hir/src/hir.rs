@@ -63,7 +63,6 @@ pub enum ArithOp {
     Div,
     Neg,
     Pow,
-    Sqrt,
     Abs,
     Max,
     Min,
@@ -80,7 +79,6 @@ impl TryFrom<ast::MathOp> for ArithOp {
             ast::MathOp::Div => Ok(ArithOp::Div),
             ast::MathOp::Neg => Ok(ArithOp::Neg),
             ast::MathOp::Pow => Ok(ArithOp::Pow),
-            ast::MathOp::Sqrt => Ok(ArithOp::Sqrt),
             ast::MathOp::FAbs => Ok(ArithOp::Abs),
             ast::MathOp::FMax => Ok(ArithOp::Max),
             ast::MathOp::FMin => Ok(ArithOp::Min),
@@ -153,6 +151,7 @@ pub struct Domain {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Strategy {
+    Iterative,
     Lut {
         size: u32,
     },

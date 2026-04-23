@@ -9,7 +9,7 @@ mod rom;
 pub use cast::Cast;
 pub use constant::Constant;
 pub use horner::Horner;
-pub use lookup::{LookupTable, TableData};
+pub use lookup::LookupTable;
 pub use polynomial::PiecewisePoly;
 pub use rom::Rom;
 

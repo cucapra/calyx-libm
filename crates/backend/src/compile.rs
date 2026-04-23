@@ -8,8 +8,8 @@ use calyx_libm_hir as hir;
 use calyx_libm_utils::rational::{FixedPoint, RoundBinary};
 use calyx_libm_utils::{Config, Diagnostic, Format, Reporter};
 
-use crate::libm::{Prototype, compile_math_library};
-use crate::stdlib::Primitive;
+use crate::libm::compile_math_library;
+use crate::ops::{Component, Primitive, Prototype};
 use crate::{ComponentManager, Ids, IrBuilder, Program};
 
 struct CompiledExpr {
@@ -32,7 +32,7 @@ impl CompiledExpr {
 
 struct Builder<'a, 'src> {
     hir: &'a hir::Context,
-    signatures: &'a HashMap<hir::DefIdx, Prototype>,
+    signatures: &'a HashMap<hir::DefIdx, Component>,
     libm: &'a HashMap<hir::ExprIdx, Prototype>,
     format: &'a Format,
 
@@ -261,16 +261,16 @@ impl Builder<'_, '_> {
 
     fn compile_component_operation(
         &mut self,
-        prototype: &Prototype,
+        component: &Component,
         args: hir::EntityList<hir::ExprIdx>,
     ) -> Option<CompiledExpr> {
         let cell = self.builder.add_component(
-            prototype.prefix_hint,
-            prototype.name,
-            prototype.signature.clone(),
+            component.prefix_hint,
+            component.name,
+            component.signature.clone(),
         );
 
-        let inputs: Vec<_> = prototype
+        let inputs: Vec<_> = component
             .signature
             .iter()
             .filter_map(|port| {
@@ -282,7 +282,7 @@ impl Builder<'_, '_> {
             cell,
             &inputs,
             self.builder.cm.ids.out,
-            prototype.is_comb,
+            component.is_comb,
             args,
         )
     }
@@ -311,7 +311,6 @@ impl Builder<'_, '_> {
                     hir::ArithOp::Mul => importer.mul(self.format),
                     hir::ArithOp::Div => importer.div(self.format),
                     hir::ArithOp::Neg => importer.neg(self.format),
-                    hir::ArithOp::Sqrt => importer.sqrt(self.format),
                     hir::ArithOp::Abs => importer.abs(self.format),
                     hir::ArithOp::Max => importer.max(self.format),
                     hir::ArithOp::Min => importer.min(self.format),
@@ -337,9 +336,14 @@ impl Builder<'_, '_> {
                     None
                 }
             }
-            hir::OpKind::Sollya(_) => {
-                self.compile_component_operation(&self.libm[&idx], args)
-            }
+            hir::OpKind::Sollya(_) => match &self.libm[&idx] {
+                Prototype::Prim(primitive) => {
+                    self.compile_primitive_operation(primitive, args)
+                }
+                Prototype::Comp(component) => {
+                    self.compile_component_operation(component, args)
+                }
+            },
             hir::OpKind::Def(def) => {
                 self.compile_component_operation(&self.signatures[&def], args)
             }
@@ -612,7 +616,7 @@ struct CompileContext<'a, 'src> {
     reporter: &'a mut Reporter<'src>,
 
     names: NameGenerator,
-    signatures: HashMap<hir::DefIdx, Prototype>,
+    signatures: HashMap<hir::DefIdx, Component>,
 }
 
 fn compile_definition(
@@ -675,7 +679,7 @@ fn compile_definition(
     *component.control.borrow_mut() = body.control;
 
     if let Some((id, signature)) = signature {
-        let prototype = Prototype {
+        let prototype = Component {
             name: component.name,
             prefix_hint: ir::Id { id },
             signature,

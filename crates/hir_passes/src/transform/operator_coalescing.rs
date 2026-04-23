@@ -94,7 +94,7 @@ impl Rewriter<'_> {
                 },
                 args,
             ) => {
-                if let hir::ArithOp::Neg = op {
+                if op == hir::ArithOp::Neg {
                     let arg = self.coalesce_expression(self.ctx[args][0]);
 
                     let sollya =
@@ -133,19 +133,6 @@ impl Rewriter<'_> {
                             free,
                             trivial,
                         }
-                    }
-                } else if let Ok(op) = hir::SollyaFn::try_from(op) {
-                    let arg = self.coalesce_expression(self.ctx[args][0]);
-
-                    let sollya = self
-                        .ctx
-                        .ops
-                        .intern(hir::SollyaExpr::Call(op, arg.sollya));
-
-                    Compound {
-                        sollya,
-                        free: arg.free,
-                        trivial: false,
                     }
                 } else {
                     for i in 0..args.len(self.ctx.pool()) {

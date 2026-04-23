@@ -132,6 +132,7 @@ pub struct CalyxDomain {
 /// An implementation strategy and its parameters.
 #[derive(Debug)]
 pub enum CalyxImpl {
+    Iterative,
     Lut { size: u32 },
     Poly { degree: u32, error: Option<Number> },
 }

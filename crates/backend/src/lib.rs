@@ -2,6 +2,7 @@ mod builder;
 mod compile;
 mod components;
 mod libm;
+mod ops;
 mod program;
 mod stdlib;
 

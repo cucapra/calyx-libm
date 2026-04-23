@@ -356,7 +356,6 @@ impl Visitor for Builder<'_, '_> {
                     hir::ArithOp::Div => ("/", Kind::Infix),
                     hir::ArithOp::Neg => ("-", Kind::Unary),
                     hir::ArithOp::Pow => ("^", Kind::Infix),
-                    hir::ArithOp::Sqrt => ("sqrt", Kind::Unary),
                     hir::ArithOp::Abs => ("abs", Kind::Unary),
                     hir::ArithOp::Max => ("fmax", Kind::Binary),
                     hir::ArithOp::Min => ("fmin", Kind::Binary),

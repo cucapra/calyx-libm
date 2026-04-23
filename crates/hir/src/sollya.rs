@@ -126,17 +126,6 @@ impl TryFrom<ast::MathOp> for SollyaFn {
     }
 }
 
-impl TryFrom<hir::ArithOp> for SollyaFn {
-    type Error = ();
-
-    fn try_from(value: hir::ArithOp) -> Result<Self, Self::Error> {
-        match value {
-            hir::ArithOp::Sqrt => Ok(SollyaFn::Sqrt),
-            _ => Err(()),
-        }
-    }
-}
-
 impl idx::SollyaIdx {
     /// Returns `self` composed with `other`.
     pub fn compose(

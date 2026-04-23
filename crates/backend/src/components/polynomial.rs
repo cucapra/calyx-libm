@@ -20,10 +20,10 @@ impl ComponentBuilder for PiecewisePoly<'_> {
     fn name(&self) -> ir::Id {
         ir::Id::new(mangle!(
             "poly",
-            self.table.data.spec,
-            self.table.data.formats,
+            self.table.data,
+            self.table.columns,
             self.table.format,
-            self.table.spec,
+            self.table.addr,
             self.spec,
         ))
     }
@@ -56,7 +56,7 @@ impl ComponentBuilder for PiecewisePoly<'_> {
         let horner = Horner {
             format: self.table.format,
             spec: &self.spec,
-            in_width: cmp::max(self.table.spec.idx_lsb, 1),
+            in_width: cmp::max(self.table.addr.idx_lsb, 1),
         };
 
         let (lookup, lookup_ports) = cm.get(&self.table)?;

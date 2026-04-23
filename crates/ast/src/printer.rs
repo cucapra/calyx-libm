@@ -543,25 +543,19 @@ impl Property {
                 )
                 .nest(STANDARD_INDENT)
                 .group(),
-            PropKind::CalyxImpl(CalyxImpl::Lut { size }) => allocator
+            PropKind::CalyxImpl(strategy) => allocator
                 .text(":calyx-impl")
                 .append(allocator.line())
-                .append(
-                    allocator
+                .append(match strategy {
+                    CalyxImpl::Iterative => allocator.text("iterative"),
+                    CalyxImpl::Lut { size } => allocator
                         .text("lut")
                         .append(allocator.line())
                         .append(allocator.as_string(size))
                         .nest(STANDARD_INDENT)
                         .group()
                         .parens(),
-                )
-                .nest(STANDARD_INDENT)
-                .group(),
-            PropKind::CalyxImpl(CalyxImpl::Poly { degree, error }) => allocator
-                .text(":calyx-impl")
-                .append(allocator.line())
-                .append(
-                    allocator
+                    CalyxImpl::Poly { degree, error } => allocator
                         .text("poly")
                         .append(allocator.line())
                         .append(allocator.as_string(degree))
@@ -574,7 +568,7 @@ impl Property {
                         .nest(STANDARD_INDENT)
                         .group()
                         .parens(),
-                )
+                })
                 .nest(STANDARD_INDENT)
                 .group(),
             PropKind::Unknown(name, data) => allocator

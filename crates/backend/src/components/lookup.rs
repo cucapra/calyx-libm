@@ -25,29 +25,23 @@ where
         .fold(Natural::ZERO, |acc, (value, width)| (acc << width) | value)
 }
 
-pub struct TableData<'a> {
+pub struct LookupTable<'a> {
     pub values: &'a [Vec<Rational>],
-    pub formats: &'a [Format],
-    pub spec: &'a dyn Mangle,
+    pub columns: &'a [Format],
+    pub format: &'a Format,
+    pub addr: &'a AddressSpec,
+    pub data: &'a dyn Mangle,
 }
 
-impl TableData<'_> {
+impl LookupTable<'_> {
     pub fn widths(&self) -> impl Iterator<Item = u32> {
-        self.formats.iter().map(|format| format.width)
+        self.columns.iter().map(|format| format.width)
     }
 
     pub fn width(&self) -> u32 {
         self.widths().sum()
     }
-}
 
-pub struct LookupTable<'a> {
-    pub data: TableData<'a>,
-    pub format: &'a Format,
-    pub spec: &'a AddressSpec,
-}
-
-impl LookupTable<'_> {
     fn build_rom(
         &self,
         cm: &mut ComponentManager,
@@ -62,24 +56,23 @@ impl LookupTable<'_> {
         };
 
         let data: Vec<_> = self
-            .data
             .values
             .iter()
             .map(|row| {
                 itertools::process_results(
-                    iter::zip(row, self.data.formats).map(|(value, format)| {
+                    iter::zip(row, self.columns).map(|(value, format)| {
                         value
                             .to_fixed_point(format)
                             .ok_or_else(|| diagnostic(value, format))
                     }),
-                    |bits| pack(bits, self.data.widths()),
+                    |bits| pack(bits, self.widths()),
                 )
             })
             .collect::<Result<_, _>>()?;
 
         let rom = Rom {
-            idx_width: self.spec.idx_width,
-            out_width: u64::from(self.data.width()),
+            idx_width: self.addr.idx_width,
+            out_width: u64::from(self.width()),
             data: &data,
         };
 
@@ -91,10 +84,10 @@ impl ComponentBuilder for LookupTable<'_> {
     fn name(&self) -> ir::Id {
         ir::Id::new(mangle!(
             "lookup",
-            self.data.spec,
-            self.data.formats,
+            self.data,
+            self.columns,
             self.format,
-            self.spec,
+            self.addr,
         ))
     }
 
@@ -108,13 +101,13 @@ impl ComponentBuilder for LookupTable<'_> {
             ),
             ir::PortDef::new(
                 "out",
-                u64::from(self.data.width()),
+                u64::from(self.width()),
                 ir::Direction::Output,
                 Default::default(),
             ),
             ir::PortDef::new(
                 "arg",
-                cmp::max(self.spec.idx_lsb, 1),
+                cmp::max(self.addr.idx_lsb, 1),
                 ir::Direction::Output,
                 Default::default(),
             ),
@@ -135,7 +128,7 @@ impl ComponentBuilder for LookupTable<'_> {
         let global = u64::from(self.format.width);
 
         let rom = builder.add_primitive("rom", rom, &[]);
-        let subtrahend = builder.big_constant(&self.spec.subtrahend, global);
+        let subtrahend = builder.big_constant(&self.addr.subtrahend, global);
 
         builder.cm.import(Import::Core);
 
@@ -143,9 +136,9 @@ impl ComponentBuilder for LookupTable<'_> {
             let sub = prim std_sub(global);
             let slice = prim std_bit_slice(
                 global,
-                self.spec.idx_lsb,
-                self.spec.idx_lsb + self.spec.idx_width - 1,
-                self.spec.idx_width
+                self.addr.idx_lsb,
+                self.addr.idx_lsb + self.addr.idx_width - 1,
+                self.addr.idx_width
             );
         );
 
@@ -168,7 +161,7 @@ impl ComponentBuilder for LookupTable<'_> {
 
         builder.add_continuous_assignments(assigns);
 
-        if self.spec.idx_lsb == 0 {
+        if self.addr.idx_lsb == 0 {
             let zero = builder.add_constant(0, 1);
             let signature = &builder.component.signature;
 
@@ -178,14 +171,14 @@ impl ComponentBuilder for LookupTable<'_> {
 
             builder.add_continuous_assignment(assign);
         } else {
-            let msb = self.spec.idx_lsb - 1;
+            let msb = self.addr.idx_lsb - 1;
 
             structure!(builder;
                 let high = prim std_bit_slice(global, msb, msb, 1);
                 let com = prim std_not(1);
             );
 
-            if self.spec.idx_lsb == 1 {
+            if self.addr.idx_lsb == 1 {
                 let signature = &builder.component.signature;
 
                 let assigns = build_assignments!(builder;
@@ -198,7 +191,7 @@ impl ComponentBuilder for LookupTable<'_> {
             } else {
                 structure!(builder;
                     let low = prim std_slice(global, msb);
-                    let cat = prim std_cat(1, msb, self.spec.idx_lsb);
+                    let cat = prim std_cat(1, msb, self.addr.idx_lsb);
                 );
 
                 let signature = &builder.component.signature;

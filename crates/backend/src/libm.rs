@@ -1,24 +1,14 @@
 use std::collections::HashMap;
-use std::slice;
 
-use calyx_ir as ir;
 use malachite::num::basic::traits::Zero;
 
-use calyx_libm_approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
 use calyx_libm_hir::{self as hir, Metadata, Pool, Visitor};
 use calyx_libm_hir_passes::analysis::RangeAnalysis;
 use calyx_libm_utils::interface::{Config, RangeAnalysis as AnalysisMode};
-use calyx_libm_utils::mangling::{Hash, Mangle};
 use calyx_libm_utils::{Diagnostic, Format, Reporter};
 
-use crate::components::{self as comp, ComponentManager};
-
-pub struct Prototype {
-    pub name: ir::Id,
-    pub prefix_hint: ir::Id,
-    pub signature: Vec<ir::PortDef<u64>>,
-    pub is_comb: bool,
-}
+use crate::ComponentManager;
+use crate::ops::{self, OpBuilder, Operator, Prototype};
 
 pub fn compile_math_library(
     hir: &hir::Context,
@@ -70,10 +60,14 @@ impl Visitor for Builder<'_, '_> {
         ctx: &hir::Context,
     ) -> Result<(), LibraryError> {
         if let hir::OpKind::Sollya(sollya) = op.kind {
-            let op = Operator::new(op, sollya, ctx);
+            let op = Operator {
+                idx: sollya,
+                span: op.span,
+                ctx,
+            };
 
             let prototype =
-                self.build(&ctx[idx], &op, args).map_err(|err| {
+                self.build(&op, &ctx[idx], args).map_err(|err| {
                     self.reporter.emit(&err);
 
                     LibraryError
@@ -89,50 +83,77 @@ impl Visitor for Builder<'_, '_> {
 impl<'a> Builder<'a, '_> {
     fn build(
         &mut self,
-        expr: &hir::Expression,
         op: &Operator,
+        expr: &hir::Expression,
         args: hir::EntityList<hir::ExprIdx>,
     ) -> Result<Prototype, Diagnostic> {
-        static ZERO: hir::Rational = hir::Rational::ZERO;
-
-        let domain = expr.props(self.hir).find_map(|prop| match prop {
-            hir::Property::Domain(domain) => Some(domain),
-            _ => None,
-        });
-
-        let strategy = expr.props(self.hir).find_map(|prop| match prop {
-            hir::Property::Impl(strategy) => Some(strategy),
-            _ => None,
-        });
-
-        let domain = self.choose_domain(op, args, domain)?;
+        let strategy = expr
+            .props(self.hir)
+            .find_map(|prop| match prop {
+                hir::Property::Impl(strategy) => Some(strategy),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                Diagnostic::error()
+                    .with_message(format!(
+                        "no implementation specified for operator `{}`",
+                        op.pretty(),
+                    ))
+                    .try_with_primary(op.span, "no implementation specified")
+                    .with_note("help: add a `:calyx-impl` annotation")
+            })?;
 
         match strategy {
-            Some(&hir::Strategy::Lut { size }) => {
-                self.build_lut(op, &domain, size)
+            hir::Strategy::Iterative => {
+                let builder = ops::Iterative {
+                    format: self.format,
+                };
+
+                builder.build(op, self.cm)
             }
-            Some(&hir::Strategy::Poly { degree, error }) => {
+            &hir::Strategy::Lut { size } => {
+                let domain = self.choose_domain(op, expr, args)?;
+
+                let builder = ops::Lut {
+                    format: self.format,
+                    left: domain.left,
+                    right: domain.right,
+                    size,
+                };
+
+                builder.build(op, self.cm)
+            }
+            &hir::Strategy::Poly { degree, error } => {
+                static ZERO: hir::Rational = hir::Rational::ZERO;
+
+                let domain = self.choose_domain(op, expr, args)?;
                 let error =
                     error.map(|error| &self.hir[error].value).unwrap_or(&ZERO);
 
-                self.build_poly(op, &domain, degree, error)
+                let builder = ops::Poly {
+                    format: self.format,
+                    left: domain.left,
+                    right: domain.right,
+                    degree,
+                    error,
+                };
+
+                builder.build(op, self.cm)
             }
-            None => Err(Diagnostic::error()
-                .with_message(format!(
-                    "no implementation specified for operator `{}`",
-                    op.pretty,
-                ))
-                .try_with_primary(op.span, "no implementation specified")
-                .with_note("help: add a `:calyx-impl` annotation")),
         }
     }
 
     fn choose_domain(
         &self,
         op: &Operator,
+        expr: &hir::Expression,
         args: hir::EntityList<hir::ExprIdx>,
-        hint: Option<&hir::Domain>,
     ) -> Result<DomainHint<'a>, Diagnostic> {
+        let hint = expr.props(self.hir).find_map(|prop| match prop {
+            hir::Property::Domain(domain) => Some(domain),
+            _ => None,
+        });
+
         let (left, right) = hint
             .map(|domain| {
                 (&self.hir[domain.left].value, &self.hir[domain.right].value)
@@ -147,192 +168,19 @@ impl<'a> Builder<'a, '_> {
             })
             .ok_or_else(|| {
                 Diagnostic::error()
-                    .with_message(format!("operator `{}` has unknown domain", op.pretty))
+                    .with_message(format!(
+                        "operator `{}` has unknown domain",
+                        op.pretty(),
+                    ))
                     .try_with_primary(op.span, "unknown domain")
                     .with_note("help: add a `:calyx-domain` annotation or enable range analysis")
             })?;
 
         Ok(DomainHint { left, right })
     }
-
-    fn build_lut(
-        &mut self,
-        op: &Operator,
-        domain: &DomainHint,
-        size: u32,
-    ) -> Result<Prototype, Diagnostic> {
-        let (addr_spec, domain) = &domain.widen(op, self.format, size)?;
-
-        let values =
-            &remez::build_table(&op.sollya, 0, domain, size, self.format.scale)
-                .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
-                })?;
-
-        let table_spec = LutSpec {
-            op: op.mangle(),
-            domain,
-            size,
-        };
-
-        let data = comp::TableData {
-            values,
-            formats: slice::from_ref(self.format),
-            spec: &table_spec,
-        };
-
-        let builder = comp::LookupTable {
-            data,
-            format: self.format,
-            spec: addr_spec,
-        };
-
-        let (name, signature) = self.cm.get(&builder).map_err(|err| {
-            err.try_with_secondary(
-                op.span,
-                format!("while compiling operator `{}`", op.pretty),
-            )
-        })?;
-
-        Ok(Prototype {
-            name,
-            prefix_hint: op.prefix_hint,
-            signature,
-            is_comb: true,
-        })
-    }
-
-    fn build_poly(
-        &mut self,
-        op: &Operator,
-        domain: &DomainHint,
-        degree: u32,
-        error: &hir::Rational,
-    ) -> Result<Prototype, Diagnostic> {
-        let f = op.sollya.as_str();
-        let DomainHint { left, right } = domain;
-        let scale = self.format.scale;
-
-        let size =
-            faithful::segment_domain(f, degree, left, right, scale, error)
-                .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
-                })?;
-
-        let (addr_spec, domain) = &domain.widen(op, self.format, size)?;
-
-        let approx =
-            faithful::build_table(f, degree, domain, size, scale, error)
-                .map_err(|err| {
-                    Diagnostic::from_sollya_and_span(err, &op.pretty, op.span)
-                })?;
-
-        let datapath = Datapath::from_approx(&approx, degree, scale, error);
-
-        let table_spec = CoefficientSpec {
-            op: op.mangle(),
-            degree,
-            domain,
-            size,
-            scale: datapath.lut_scale,
-            error,
-        };
-
-        let data = comp::TableData {
-            values: &approx.table,
-            formats: &datapath.lut_formats(),
-            spec: &table_spec,
-        };
-
-        let builder = comp::PiecewisePoly {
-            table: comp::LookupTable {
-                data,
-                format: self.format,
-                spec: addr_spec,
-            },
-            spec: datapath,
-        };
-
-        let (name, signature) = self.cm.get(&builder).map_err(|err| {
-            err.try_with_secondary(
-                op.span,
-                format!("while compiling operator `{}`", op.pretty),
-            )
-        })?;
-
-        Ok(Prototype {
-            name,
-            prefix_hint: op.prefix_hint,
-            signature,
-            is_comb: false,
-        })
-    }
-}
-
-#[derive(Mangle)]
-struct LutSpec<'a> {
-    op: Hash,
-    domain: &'a TableDomain,
-    size: u32,
-}
-
-#[derive(Mangle)]
-struct CoefficientSpec<'a> {
-    op: Hash,
-    degree: u32,
-    domain: &'a TableDomain,
-    size: u32,
-    scale: i32,
-    error: &'a hir::Rational,
 }
 
 struct DomainHint<'a> {
     left: &'a hir::Rational,
     right: &'a hir::Rational,
-}
-
-impl DomainHint<'_> {
-    fn widen(
-        &self,
-        op: &Operator,
-        format: &Format,
-        size: u32,
-    ) -> Result<(AddressSpec, TableDomain), Diagnostic> {
-        AddressSpec::from_domain_hint(self.left, self.right, format, size)
-            .map_err(|err| {
-                Diagnostic::error()
-                    .with_message(format!(
-                        "operator `{}` has infeasible domain",
-                        op.pretty,
-                    ))
-                    .try_with_primary(op.span, "operator has infeasible domain")
-                    .with_note(err.to_string())
-            })
-    }
-}
-
-struct Operator {
-    sollya: String,
-    pretty: String,
-    prefix_hint: ir::Id,
-    span: hir::Span,
-}
-
-impl Operator {
-    fn new(
-        op: &hir::Operation,
-        idx: hir::SollyaIdx,
-        ctx: &hir::Context,
-    ) -> Operator {
-        Operator {
-            sollya: idx.sollya(ctx).to_string(),
-            pretty: idx.pretty(ctx).to_string(),
-            prefix_hint: idx.name(ctx).unwrap_or("f").into(),
-            span: op.span,
-        }
-    }
-
-    fn mangle(&self) -> Hash {
-        Hash::new(&self.sollya)
-    }
 }

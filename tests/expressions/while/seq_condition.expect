@@ -1,17 +1,16 @@
 import "primitives/core.futil";
 import "primitives/binary_operators.futil";
-import "primitives/math.futil";
 component main(n: 8) -> (out: 8) {
   cells {
     r = std_reg(8);
     r0 = std_reg(8);
-    sqrt = sqrt(8);
+    mul = std_mult_pipe(8);
     le = std_le(8);
     add = std_add(8);
-    mul = std_mult_pipe(8);
+    mul0 = std_mult_pipe(8);
     div = std_div_pipe(8);
     eq = std_eq(8);
-    mul0 = std_mult_pipe(8);
+    mul1 = std_mult_pipe(8);
     eq0 = std_eq(8);
     add0 = std_add(8);
     add1 = std_add(8);
@@ -27,7 +26,7 @@ component main(n: 8) -> (out: 8) {
       mux.cond = eq0.out;
       mux.tru = add0.out;
       mux.fal = add1.out;
-      eq0.left = mul0.out;
+      eq0.left = mul1.out;
       eq0.right = n;
       add0.left = r0.out;
       add0.right = 8'd1;
@@ -35,12 +34,12 @@ component main(n: 8) -> (out: 8) {
       add1.right = 8'd2;
     }
     comb group cond {
-      eq.left = mul.out;
+      eq.left = mul0.out;
       eq.right = n;
     }
     comb group cond0 {
-      le.left = r.out;
-      le.right = sqrt.out;
+      le.left = mul.out;
+      le.right = n;
     }
     out = r0.out;
   }
@@ -54,8 +53,9 @@ component main(n: 8) -> (out: 8) {
           in = 8'd0
         )();
       }
-      invoke sqrt(
-        in = n
+      invoke mul(
+        left = r.out,
+        right = r.out
       )();
       while le.out with cond0 {
         seq {
@@ -63,13 +63,13 @@ component main(n: 8) -> (out: 8) {
             left = n,
             right = r.out
           )();
-          invoke mul(
+          invoke mul0(
             left = div.out_quotient,
             right = r.out
           )();
           if eq.out with cond {
             seq {
-              invoke mul0(
+              invoke mul1(
                 left = r.out,
                 right = r.out
               )();
@@ -90,8 +90,9 @@ component main(n: 8) -> (out: 8) {
               in = r1.out
             )();
           }
-          invoke sqrt(
-            in = n
+          invoke mul(
+            left = r.out,
+            right = r.out
           )();
         }
       }

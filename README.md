@@ -86,8 +86,10 @@ implementations:
 - `:calyx-impl <method>` specifies the technique that should be used to
   implement the function.
 
-Two implementation methods are currently supported:
+Three implementation methods are currently supported:
 
+- `:calyx-impl iterative` uses an iterative algorithm (currently supported only
+  for `sqrt`).
 - `:calyx-impl (lut <size>)` generates a lookup table with `size` entries.
 - `:calyx-impl (poly <degree> <error>?)` generates a piecewise polynomial
   approximation with the given degree. By default, the operator will be
@@ -114,9 +116,9 @@ specifying `--range-analysis interval` on the command line.
 #### Experimental: Compound Operators
 
 The frontend's implementation techniques are not limited to only named functions
-like `exp`; the entire sigmoid function from the previous example can be
-implemented as a single polynomial approximation. Enable this feature with
-`-e operator-coalescing`.
+like `exp`. For instance, the entire sigmoid function from the previous example
+can be implemented as a single polynomial approximation. Enable this feature
+with `-e operator-coalescing`.
 
 [brew]: https://brew.sh/
 [calyx]: https://calyxir.org/
