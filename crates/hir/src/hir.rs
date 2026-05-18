@@ -7,7 +7,8 @@ use super::index as idx;
 
 pub use ast::{Constant, Id, MathConst, Rational, Symbol, TestOp};
 
-pub use super::sollya::{SollyaBinOp, SollyaExpr, SollyaFn};
+pub use super::metadata::*;
+pub use super::sollya::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Definition {
@@ -28,7 +29,7 @@ pub struct Argument {
 pub enum ExprKind {
     Num(idx::NumIdx),
     Const(Constant),
-    Var(idx::VarIdx, VarKind),
+    Var(idx::VarIdx),
     Op(Operation, EntityList<idx::ExprIdx>),
     If(If),
     Let(Let),
@@ -136,31 +137,6 @@ pub struct Scope {
     pub parent: PackedOption<idx::ScopeIdx>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Property {
-    Pre(idx::ExprIdx),
-    Domain(Domain),
-    Impl(Strategy),
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Domain {
-    pub left: idx::NumIdx,
-    pub right: idx::NumIdx,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Strategy {
-    Iterative,
-    Lut {
-        size: u32,
-    },
-    Poly {
-        degree: u32,
-        error: PackedOption<idx::NumIdx>,
-    },
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Span(usize, usize);
 
@@ -176,17 +152,12 @@ impl Span {
 impl From<ast::Span> for Span {
     #[inline]
     fn from(value: ast::Span) -> Self {
-        let range = Range::from(value);
-
-        Span(range.start, range.end)
+        Span(value.start(), value.end())
     }
 }
 
 impl From<Span> for Option<Range<usize>> {
     fn from(value: Span) -> Self {
-        (value != Span::NONE).then_some(Range {
-            start: value.0,
-            end: value.1,
-        })
+        (value != Span::NONE).then_some(value.0..value.1)
     }
 }

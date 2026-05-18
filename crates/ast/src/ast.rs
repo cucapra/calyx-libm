@@ -182,14 +182,21 @@ impl Span {
     pub fn new(start: usize, end: usize) -> Span {
         Span(start, end)
     }
+
+    #[inline]
+    pub fn start(&self) -> usize {
+        self.0
+    }
+
+    #[inline]
+    pub fn end(&self) -> usize {
+        self.1
+    }
 }
 
 impl From<Span> for Range<usize> {
     #[inline]
     fn from(value: Span) -> Self {
-        Range {
-            start: value.0,
-            end: value.1,
-        }
+        value.0..value.1
     }
 }

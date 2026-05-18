@@ -323,13 +323,11 @@ impl Visitor for Builder<'_, '_> {
             hir::ExprKind::Const(hir::Constant::Bool(_)) => {
                 self.script_bool(idx);
             }
-            hir::ExprKind::Var(_, hir::VarKind::Arg(arg)) => {
-                self.script_assign(idx, *arg);
-            }
-            hir::ExprKind::Var(_, hir::VarKind::Let(expr)) => {
-                self.script_assign(idx, *expr);
-            }
-            hir::ExprKind::Var(_, hir::VarKind::Mut) => unreachable!(),
+            hir::ExprKind::Var(var) => match ctx[*var] {
+                hir::VarKind::Arg(arg) => self.script_assign(idx, arg),
+                hir::VarKind::Let(expr) => self.script_assign(idx, expr),
+                hir::VarKind::Mut => unreachable!(),
+            },
             hir::ExprKind::Op(
                 hir::Operation {
                     kind: hir::OpKind::Arith(op),

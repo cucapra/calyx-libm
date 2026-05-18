@@ -80,10 +80,7 @@ impl<'ctx> Precondition<'ctx> {
                         };
 
                     let (var, domain) = match (&ctx[a].kind, &ctx[b].kind) {
-                        (
-                            hir::ExprKind::Var(_, var),
-                            hir::ExprKind::Num(num),
-                        ) => {
+                        (hir::ExprKind::Var(var), hir::ExprKind::Num(num)) => {
                             let domain = Interval::new(
                                 Endpoint::Infinite,
                                 Endpoint::Finite(&ctx[*num].value),
@@ -91,10 +88,7 @@ impl<'ctx> Precondition<'ctx> {
 
                             (*var, domain)
                         }
-                        (
-                            hir::ExprKind::Num(num),
-                            hir::ExprKind::Var(_, var),
-                        ) => {
+                        (hir::ExprKind::Num(num), hir::ExprKind::Var(var)) => {
                             let domain = Interval::new(
                                 Endpoint::Finite(&ctx[*num].value),
                                 Endpoint::Infinite,
@@ -107,7 +101,7 @@ impl<'ctx> Precondition<'ctx> {
                         }
                     };
 
-                    let hir::VarKind::Arg(arg) = var else {
+                    let hir::VarKind::Arg(arg) = ctx[var] else {
                         unreachable!("`:pre` only checked at top level");
                     };
 

@@ -24,12 +24,13 @@ impl Visitor for ConstantPropagation {
         match ctx[idx].kind {
             hir::ExprKind::Num(_) => Ok(()),
             hir::ExprKind::Const(_) => Ok(()),
-            hir::ExprKind::Var(_, hir::VarKind::Let(expr)) => {
-                propagate(idx, expr, ctx);
+            hir::ExprKind::Var(var) => {
+                if let hir::VarKind::Let(expr) = ctx[var] {
+                    propagate(idx, expr, ctx);
+                }
 
                 Ok(())
             }
-            hir::ExprKind::Var(..) => Ok(()),
             hir::ExprKind::Op(_, args) => {
                 visitor::visit_operation(self, args, ctx)
             }

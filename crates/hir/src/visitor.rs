@@ -93,7 +93,7 @@ pub fn visit_expression<V: Visitor + ?Sized>(
     match &ctx[idx].kind {
         hir::ExprKind::Num(_) => Ok(()),
         hir::ExprKind::Const(_) => Ok(()),
-        hir::ExprKind::Var(..) => Ok(()),
+        hir::ExprKind::Var(_) => Ok(()),
         hir::ExprKind::Op(op, args) => v.visit_operation(idx, op, *args, ctx),
         hir::ExprKind::If(kind) => v.visit_if(idx, kind, ctx),
         hir::ExprKind::Let(kind) => v.visit_let(idx, kind, ctx),

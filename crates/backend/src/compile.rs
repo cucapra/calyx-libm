@@ -558,13 +558,15 @@ impl Builder<'_, '_> {
             hir::ExprKind::Const(constant) => {
                 self.compile_constant(*constant, expr.span)
             }
-            hir::ExprKind::Var(_, hir::VarKind::Arg(arg)) => {
-                let id = self.hir[*arg].name.id;
+            hir::ExprKind::Var(var)
+                if let hir::VarKind::Arg(arg) = self.hir[*var] =>
+            {
+                let id = self.hir[arg].name.id;
                 let port = self.builder.component.signature.borrow().get(id);
 
                 Some(CompiledExpr::from_port(port))
             }
-            hir::ExprKind::Var(var, _) => {
+            hir::ExprKind::Var(var) => {
                 let port =
                     self.stores[var].borrow().get(self.builder.cm.ids.out);
 

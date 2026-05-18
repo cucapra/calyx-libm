@@ -42,7 +42,7 @@ struct Builder<'a, 'ast, 'src> {
     ctx: &'a mut hir::Context,
     parent: PackedOption<hir::ScopeIdx>,
     defs: HashMap<ast::Id, hir::DefIdx>,
-    vars: HashMap<ast::NodeId, (hir::VarIdx, hir::VarKind)>,
+    vars: HashMap<ast::NodeId, hir::VarIdx>,
 }
 
 impl<'ast> Builder<'_, 'ast, '_> {
@@ -101,7 +101,7 @@ impl<'ast> Builder<'_, 'ast, '_> {
         let idx = self.ctx.args.push(lowered);
         let var = self.ctx.vars.push(hir::VarKind::Arg(idx));
 
-        self.vars.insert(arg.uid, (var, hir::VarKind::Arg(idx)));
+        self.vars.insert(arg.uid, var);
 
         Ok(idx)
     }
@@ -133,14 +133,14 @@ impl<'ast> Builder<'_, 'ast, '_> {
             }
             ast::ExprKind::Const(value) => hir::ExprKind::Const(*value),
             ast::ExprKind::Id(_) => {
-                let (var, kind) = match self.bindings.names[&expr.uid] {
+                let var = match self.bindings.names[&expr.uid] {
                     sem::Binding::Argument(arg) => self.vars[&arg.uid],
                     sem::Binding::Let(binding) => self.vars[&binding.uid],
                     sem::Binding::Mut(var) => self.vars[&var.uid],
                     sem::Binding::Index(_) => unreachable!(),
                 };
 
-                hir::ExprKind::Var(var, kind)
+                hir::ExprKind::Var(var)
             }
             ast::ExprKind::Op(op, args) => {
                 let kind = match op.kind {
@@ -289,14 +289,13 @@ impl<'ast> Builder<'_, 'ast, '_> {
             let val = self.lower_expression(expr)?;
 
             let var = if init {
-                let kind = kind(val);
-                let var = self.ctx.vars.push(kind);
+                let var = self.ctx.vars.push(kind(val));
 
-                self.vars.insert(id, (var, kind));
+                self.vars.insert(id, var);
 
                 var
             } else {
-                self.vars[&id].0
+                self.vars[&id]
             };
 
             let write = self.ctx.writes.push(hir::Write { var, val });

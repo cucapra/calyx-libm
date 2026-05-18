@@ -54,7 +54,7 @@ pub fn visit_expression<V: Visitor + ?Sized>(
     match ctx[idx].kind {
         hir::ExprKind::Num(_) => Ok(()),
         hir::ExprKind::Const(_) => Ok(()),
-        hir::ExprKind::Var(..) => Ok(()),
+        hir::ExprKind::Var(_) => Ok(()),
         hir::ExprKind::Op(_, args) => visit_operation(v, args, ctx),
         hir::ExprKind::If(hir::If {
             cond,

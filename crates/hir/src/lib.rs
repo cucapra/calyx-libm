@@ -2,6 +2,7 @@ mod context;
 mod hir;
 mod index;
 mod interned;
+mod metadata;
 mod sollya;
 pub mod visitor;
 

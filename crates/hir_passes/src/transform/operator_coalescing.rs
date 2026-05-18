@@ -42,7 +42,7 @@ impl Rewriter<'_> {
         let arg = match op.free {
             Free::Variable(free) => {
                 let arg = hir::Expression {
-                    kind: hir::ExprKind::Var(free, self.ctx[free]),
+                    kind: hir::ExprKind::Var(free),
                     scope: Default::default(),
                     span: hir::Span::NONE,
                 };
@@ -78,7 +78,7 @@ impl Rewriter<'_> {
                 }
             }
             hir::ExprKind::Const(_) => self.anonymous(idx),
-            hir::ExprKind::Var(var, _) => {
+            hir::ExprKind::Var(var) => {
                 let sollya = self.ctx.ops.intern(hir::SollyaExpr::Variable);
 
                 Compound {

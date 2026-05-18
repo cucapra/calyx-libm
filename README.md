@@ -4,7 +4,7 @@ Compile [FPCore][fpcore] to fixed-point hardware via [Calyx][calyx].
 
 ## Installation
 
-You'll need [Rust][rust] (1.88+) and the [Sollya][sollya] tool. On macOS, you
+You'll need [Rust][rust] (1.95+) and the [Sollya][sollya] tool. On macOS, you
 can install the latter via [Homebrew][brew] with `brew install sollya`. On
 Ubuntu or Debian, use `apt install sollya`.
 
