@@ -1,7 +1,6 @@
+use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
 
-use cranelift_entity::{entity_impl, EntityList, ListPool, PrimaryMap};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct NodeId(u32);
 entity_impl!(NodeId, "node");
 
@@ -45,6 +44,7 @@ impl Dfg {
             pool: ListPool::new(),
         }
     }
+
     pub fn add_input(&mut self) -> NodeId {
         self.nodes.push(Node {
             kind: NodeKind::Input,
@@ -83,7 +83,7 @@ impl Dfg {
         self.nodes[node].inputs.as_slice(&self.pool)
     }
 
-    pub fn node_ids(&self) -> impl Iterator<Item = NodeId> + '_ {
+    pub fn node_ids(&self) -> impl Iterator<Item = NodeId> {
         self.nodes.keys()
     }
 
@@ -108,9 +108,11 @@ impl Dfg {
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
+
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
+
     pub fn successor_map(&self) -> PrimaryMap<NodeId, Vec<NodeId>> {
         let mut succs: PrimaryMap<NodeId, Vec<NodeId>> = PrimaryMap::new();
 
@@ -134,16 +136,11 @@ impl Dfg {
             in_degree.push(0);
         }
         for node_id in self.nodes.keys() {
-            for &_pred in self.inputs(node_id) {
-            }
             in_degree[node_id] = self.inputs(node_id).len() as u32;
         }
 
-        let mut queue: Vec<NodeId> = self
-            .nodes
-            .keys()
-            .filter(|&id| in_degree[id] == 0)
-            .collect();
+        let mut queue: Vec<NodeId> =
+            self.nodes.keys().filter(|&id| in_degree[id] == 0).collect();
 
         let succs = self.successor_map();
         let mut order = Vec::with_capacity(self.nodes.len());
@@ -173,6 +170,7 @@ impl Default for Dfg {
         Self::new()
     }
 }
+
 impl std::fmt::Display for ArithOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -197,10 +195,13 @@ impl std::fmt::Display for Dfg {
             let inputs = self.inputs(id);
             match &node.kind {
                 NodeKind::Input => writeln!(f, "{id}: INPUT")?,
-                NodeKind::Output => writeln!(f, "{id}: OUTPUT <- {}", inputs[0])?,
+                NodeKind::Output => {
+                    writeln!(f, "{id}: OUTPUT <- {}", inputs[0])?
+                }
                 NodeKind::Const(v) => writeln!(f, "{id}: CONST({v})")?,
                 NodeKind::Op(op) => {
-                    let args: Vec<String> = inputs.iter().map(|n| format!("{n}")).collect();
+                    let args: Vec<String> =
+                        inputs.iter().map(|n| format!("{n}")).collect();
                     writeln!(f, "{id}: {op}({})", args.join(", "))?;
                 }
             }
