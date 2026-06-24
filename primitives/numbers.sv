@@ -1,4 +1,5 @@
 // verilator lint_off MULTITOP
+// verilator lint_off WIDTH
 
 module num_rpad #(
     parameter int IN_WIDTH  = 32,
