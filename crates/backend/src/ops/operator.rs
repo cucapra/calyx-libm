@@ -14,8 +14,8 @@ pub struct Operator<'hir> {
 }
 
 impl Operator<'_> {
-    pub fn sollya(&self) -> String {
-        self.idx.sollya(self.ctx).to_string()
+    pub fn sollya(&self) -> impl std::fmt::Display {
+        self.idx.sollya(self.ctx)
     }
 
     pub fn pretty(&self) -> impl std::fmt::Display {

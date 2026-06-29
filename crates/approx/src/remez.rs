@@ -7,21 +7,48 @@ use calyx_libm_utils::sollya::{self, ScriptError};
 
 use crate::TableDomain;
 
+static SCRIPT: &[u8] = include_bytes!("scripts/remez.sollya");
+
+/// Constructs a lookup table approximating `f` over the given domain.
+///
+/// The domain is subdivided at evenly-spaced breakpoints, with the number of
+/// subintervals given by `size`.
+pub fn build_table(
+    f: &str,
+    domain: &TableDomain,
+    size: u32,
+    scale: i32,
+) -> Result<Vec<Rational>, ScriptError> {
+    let args = [
+        f,
+        "0",
+        &format!("{}", domain.left.dyadic()),
+        &format!("{}", domain.right.dyadic()),
+        &format!("{size}"),
+        &format!("{scale}"),
+    ];
+
+    let result = sollya::sollya(SCRIPT, &args)?;
+
+    result
+        .lines()
+        .map(|line| Rational::from_dyadic(line).ok_or(ScriptError::BadResponse))
+        .collect()
+}
+
 /// Constructs a table of polynomials approximating `f` piecewise over the given
 /// domain.
 ///
 /// The domain is subdivided at evenly-spaced breakpoints, with the number of
 /// subintervals given by `size`. Each polynomial is computed so as to minimize
 /// the maximum absolute error over the corresponding subinterval.
-pub fn build_table(
+pub fn build_coefficient_table(
     f: &str,
     degree: u32,
     domain: &TableDomain,
     size: u32,
     scale: i32,
 ) -> Result<Vec<Vec<Rational>>, ScriptError> {
-    let cmd = include_bytes!("scripts/remez.sollya");
-
     let args = [
         f,
         &format!("{degree}"),
@@ -31,7 +58,7 @@ pub fn build_table(
         &format!("{scale}"),
     ];
 
-    let result = sollya::sollya(cmd, &args)?;
+    let result = sollya::sollya(SCRIPT, &args)?;
 
     result
         .lines()

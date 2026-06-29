@@ -1,14 +1,26 @@
-use std::slice;
+use std::iter;
 
-use malachite::Rational;
+use malachite::num::basic::traits::Zero;
+use malachite::{Natural, Rational};
 
 use calyx_libm_approx::{AddressSpec, Datapath, TableDomain, faithful, remez};
-use calyx_libm_utils::mangling::{Hash, Mangle};
+use calyx_libm_utils::rational::FixedPoint;
 use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{Component, OpBuilder, Operator, Prototype};
 use crate::ComponentManager;
 use crate::components::{LookupTable, PiecewisePoly};
+
+/// Packs a sequence of values into a single bit vector. The first element of
+/// the sequence occupies the most-significant position.
+fn pack<V, W>(values: V, widths: W) -> Natural
+where
+    V: IntoIterator<Item = Natural>,
+    W: IntoIterator<Item = u32>,
+{
+    iter::zip(values, widths)
+        .fold(Natural::ZERO, |acc, (value, width)| (acc << width) | value)
+}
 
 pub struct Lut<'a> {
     pub format: &'a Format,
@@ -23,13 +35,13 @@ impl OpBuilder for Lut<'_> {
         op: &Operator,
         cm: &mut ComponentManager,
     ) -> Result<Prototype, Diagnostic> {
-        let f = op.sollya();
+        let f = op.sollya().to_string();
 
         let (addr, domain) =
             &widen_domain(op, self.left, self.right, self.format, self.size)?;
 
         let values =
-            &remez::build_table(&f, 0, domain, self.size, self.format.scale)
+            remez::build_table(&f, domain, self.size, self.format.scale)
                 .map_err(|err| {
                     Diagnostic::from_sollya_and_span(
                         err,
@@ -38,26 +50,36 @@ impl OpBuilder for Lut<'_> {
                     )
                 })?;
 
-        let data = LutSpec {
-            op: Hash::new(&f),
-            domain,
-            size: self.size,
-        };
+        let data: Vec<_> = values
+            .iter()
+            .map(|value| {
+                value.to_fixed_point(self.format).ok_or_else(|| {
+                    Diagnostic::error()
+                        .with_message("overflow")
+                        .try_with_secondary(
+                            op.span,
+                            format!(
+                                "while compiling operator `{}`",
+                                op.pretty(),
+                            ),
+                        )
+                        .with_note(format!(
+                            "table value {} out of range for `{}`",
+                            value,
+                            self.format.fpcore(),
+                        ))
+                })
+            })
+            .collect::<Result<_, _>>()?;
 
         let builder = LookupTable {
-            values,
-            columns: slice::from_ref(self.format),
-            format: self.format,
+            in_width: u64::from(self.format.width),
+            out_width: u64::from(self.format.width),
             addr,
             data: &data,
         };
 
-        let (name, signature) = cm.get(&builder).map_err(|err| {
-            err.try_with_secondary(
-                op.span,
-                format!("while compiling operator `{}`", op.pretty()),
-            )
-        })?;
+        let (name, signature) = cm.get(&builder)?;
 
         Ok(Prototype::Comp(Component {
             name,
@@ -66,13 +88,6 @@ impl OpBuilder for Lut<'_> {
             is_comb: true,
         }))
     }
-}
-
-#[derive(Mangle)]
-struct LutSpec<'a> {
-    op: Hash,
-    domain: &'a TableDomain,
-    size: u32,
 }
 
 pub struct Poly<'a> {
@@ -89,7 +104,7 @@ impl OpBuilder for Poly<'_> {
         op: &Operator,
         cm: &mut ComponentManager,
     ) -> Result<Prototype, Diagnostic> {
-        let f = op.sollya();
+        let f = op.sollya().to_string();
 
         let Poly {
             format: &Format { scale, .. },
@@ -121,34 +136,37 @@ impl OpBuilder for Poly<'_> {
                     )
                 })?;
 
-        let spec = Datapath::from_approx(&approx, degree, scale, error);
+        let eval = Datapath::from_approx(&approx, degree, scale, error);
 
-        let data = CoefficientSpec {
-            op: Hash::new(&f),
-            degree,
-            domain,
-            size,
-            scale: spec.lut_scale,
-            error,
-        };
+        let data: Vec<_> = approx
+            .table
+            .iter()
+            .map(|row| {
+                pack(
+                    iter::zip(row, eval.lut_formats()).map(
+                        |(value, format)| {
+                            value.to_fixed_point(&format).unwrap()
+                        },
+                    ),
+                    eval.lut_widths.iter().copied(),
+                )
+            })
+            .collect();
+
+        let lut_width: u32 = eval.lut_widths.iter().sum();
 
         let builder = PiecewisePoly {
+            format: self.format,
+            eval: &eval,
             table: LookupTable {
-                values: &approx.table,
-                columns: &spec.lut_formats(),
-                format: self.format,
+                in_width: u64::from(self.format.width),
+                out_width: u64::from(lut_width),
                 addr,
                 data: &data,
             },
-            spec,
         };
 
-        let (name, signature) = cm.get(&builder).map_err(|err| {
-            err.try_with_secondary(
-                op.span,
-                format!("while compiling operator `{}`", op.pretty()),
-            )
-        })?;
+        let (name, signature) = cm.get(&builder)?;
 
         Ok(Prototype::Comp(Component {
             name,
@@ -157,16 +175,6 @@ impl OpBuilder for Poly<'_> {
             is_comb: false,
         }))
     }
-}
-
-#[derive(Mangle)]
-struct CoefficientSpec<'a> {
-    op: Hash,
-    degree: u32,
-    domain: &'a TableDomain,
-    size: u32,
-    scale: i32,
-    error: &'a Rational,
 }
 
 fn widen_domain(

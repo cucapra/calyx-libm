@@ -5,26 +5,26 @@ use std::cmp;
 use calyx_ir::{self as ir, build_assignments};
 
 use calyx_libm_approx::Datapath;
-use calyx_libm_utils::diagnostics::Diagnostic;
-use calyx_libm_utils::mangling::mangle;
+use calyx_libm_utils::mangling::{Hash, mangle};
+use calyx_libm_utils::{Diagnostic, Format};
 
 use super::{ComponentBuilder, ComponentManager, Horner, Ids, LookupTable};
 use crate::IrBuilder;
 
 pub struct PiecewisePoly<'a> {
+    pub format: &'a Format,
+    pub eval: &'a Datapath,
     pub table: LookupTable<'a>,
-    pub spec: Datapath,
 }
 
 impl ComponentBuilder for PiecewisePoly<'_> {
     fn name(&self) -> ir::Id {
         ir::Id::new(mangle!(
             "poly",
-            self.table.data,
-            self.table.columns,
-            self.table.format,
+            self.format,
+            self.eval,
             self.table.addr,
-            self.spec,
+            Hash::new(self.table.data),
         ))
     }
 
@@ -35,13 +35,13 @@ impl ComponentBuilder for PiecewisePoly<'_> {
         vec![
             ir::PortDef::new(
                 "in",
-                u64::from(self.table.format.width),
+                u64::from(self.format.width),
                 ir::Direction::Input,
                 Default::default(),
             ),
             ir::PortDef::new(
                 "out",
-                u64::from(self.table.format.width),
+                u64::from(self.format.width),
                 ir::Direction::Output,
                 stable,
             ),
@@ -54,8 +54,8 @@ impl ComponentBuilder for PiecewisePoly<'_> {
         cm: &mut ComponentManager,
     ) -> Result<ir::Component, Diagnostic> {
         let horner = Horner {
-            format: self.table.format,
-            spec: &self.spec,
+            format: self.format,
+            spec: self.eval,
             in_width: cmp::max(self.table.addr.idx_lsb, 1),
         };
 
