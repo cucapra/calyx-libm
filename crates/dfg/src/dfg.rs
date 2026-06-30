@@ -136,7 +136,9 @@ impl DFG {
                 "\t{} [label=\"{}\", shape={}];\n",
                 n_id,
                 node,
-                if node.node_type == NodeType::Input || node.node_type == NodeType::Output {
+                if node.node_type == NodeType::Input
+                    || node.node_type == NodeType::Output
+                {
                     "box"
                 } else {
                     "circle"
