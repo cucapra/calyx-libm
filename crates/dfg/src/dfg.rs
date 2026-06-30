@@ -150,11 +150,15 @@ impl DFG {
             dot.push_str(&format!("\t{} -> {};\n", edge.input, edge.output));
         }
 
-        dot.push_str("\n");
-
         dot.push_str("}\n");
 
         dot
+    }
+}
+
+impl Default for DFG {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
