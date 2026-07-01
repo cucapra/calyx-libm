@@ -2,6 +2,7 @@
 name = "calyx-libm"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 argh.workspace = true
@@ -10,6 +11,7 @@ calyx-libm-approx.workspace = true
 calyx-libm-ast.workspace = true
 calyx-libm-ast-lowering.workspace = true
 calyx-libm-backend.workspace = true
+calyx-libm-dfg.workspace = true
 calyx-libm-hir.workspace = true
 calyx-libm-hir-passes.workspace = true
 calyx-libm-utils.workspace = true
@@ -44,6 +46,7 @@ calyx-libm-approx = { path = "crates/approx" }
 calyx-libm-ast = { path = "crates/ast" }
 calyx-libm-ast-lowering = { path = "crates/ast_lowering" }
 calyx-libm-backend = { path = "crates/backend" }
+calyx-libm-dfg = { path = "crates/dfg" }
 calyx-libm-hir = { path = "crates/hir" }
 calyx-libm-hir-passes = { path = "crates/hir_passes" }
 calyx-libm-macros = { path = "crates/macros" }

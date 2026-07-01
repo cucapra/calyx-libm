@@ -127,6 +127,7 @@ dependencies = [
  "calyx-libm-ast",
  "calyx-libm-ast-lowering",
  "calyx-libm-backend",
+ "calyx-libm-dfg",
  "calyx-libm-hir",
  "calyx-libm-hir-passes",
  "calyx-libm-utils",
@@ -181,6 +182,13 @@ dependencies = [
  "smallvec",
  "strum 0.27.1",
  "strum_macros 0.27.1",
+]
+
+[[package]]
+name = "calyx-libm-dfg"
+version = "0.1.0"
+dependencies = [
+ "cranelift-entity",
 ]
 
 [[package]]

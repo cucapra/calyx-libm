@@ -1,0 +1,7 @@
+[package]
+name = "calyx-libm-dfg"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cranelift-entity.workspace = true
