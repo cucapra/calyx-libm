@@ -1,4 +1,5 @@
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
+use std::ops::{Index, IndexMut};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct NodeId(u32);
@@ -8,74 +9,49 @@ entity_impl!(NodeId, "n");
 entity_impl!(EdgeId, "e");
 
 #[derive(Debug)]
-pub struct DFG {
+pub struct Dfg {
     pub nodes: PrimaryMap<NodeId, Node>,
     pub edges: PrimaryMap<EdgeId, Edge>,
     pub edge_pool: ListPool<EdgeId>,
 }
 
-impl DFG {
+impl Dfg {
     pub fn new() -> Self {
-        DFG {
+        Dfg {
             nodes: PrimaryMap::new(),
             edges: PrimaryMap::new(),
             edge_pool: ListPool::new(),
         }
     }
 
-    pub fn new_with_nodes(nodes: PrimaryMap<NodeId, Node>) -> Self {
-        DFG {
+    pub fn with_nodes(nodes: PrimaryMap<NodeId, Node>) -> Self {
+        Dfg {
             nodes,
             edges: PrimaryMap::new(),
             edge_pool: ListPool::new(),
         }
     }
 
+    ///Adds an edge to the Dfg. Updates connected nodes to contain this edge
+    ///as an neighbor
     pub fn add_edge(&mut self, edge: Edge) -> EdgeId {
-        self.edges.push(edge)
+        let e_id = self.edges.push(edge);
+        self.nodes[self.edges[e_id].output]
+            .inputs
+            .push(e_id, &mut self.edge_pool);
+        self.nodes[self.edges[e_id].input]
+            .outputs
+            .push(e_id, &mut self.edge_pool);
+        e_id
     }
 
     pub fn add_node(&mut self, node: Node) -> NodeId {
         self.nodes.push(node)
     }
 
-    pub fn add_input(&mut self, input_edge: EdgeId) -> NodeId {
-        let mut n = Node {
-            node_type: NodeType::Input,
-            inputs: EntityList::new(),
-            outputs: EntityList::new(),
-            props: Vec::new(),
-        };
-        n.outputs.push(input_edge, &mut self.edge_pool);
-        self.nodes.push(n)
-    }
-
-    pub fn add_output(&mut self, output_edge: EdgeId) -> NodeId {
-        let mut n = Node {
-            node_type: NodeType::Output,
-            inputs: EntityList::new(),
-            outputs: EntityList::new(),
-            props: Vec::new(),
-        };
-        n.inputs.push(output_edge, &mut self.edge_pool);
-        self.nodes.push(n)
-    }
-
-    pub fn push_node_input(&mut self, node_id: NodeId, edge_id: EdgeId) {
-        self.nodes[node_id]
-            .inputs
-            .push(edge_id, &mut self.edge_pool);
-    }
-
-    pub fn push_node_output(&mut self, node_id: NodeId, edge_id: EdgeId) {
-        self.nodes[node_id]
-            .outputs
-            .push(edge_id, &mut self.edge_pool);
-    }
-
     pub fn add_const(&mut self, value: f64) -> NodeId {
         self.nodes.push(Node {
-            node_type: NodeType::Const(value),
+            node_type: NodeKind::Const(value),
             inputs: EntityList::new(),
             outputs: EntityList::new(),
             props: Vec::new(),
@@ -83,32 +59,24 @@ impl DFG {
     }
 
     pub fn inputs(&self, node: NodeId) -> &[EdgeId] {
-        self.nodes[node].inputs.as_slice(&self.edge_pool)
+        self[node].inputs.as_slice(&self.edge_pool)
     }
 
     pub fn node_ids(&self) -> impl Iterator<Item = NodeId> {
         self.nodes.keys()
     }
 
-    pub fn node(&self, id: NodeId) -> &Node {
-        &self.nodes[id]
-    }
-
-    pub fn edge(&self, id: EdgeId) -> &Edge {
-        &self.edges[id]
-    }
-
-    pub fn source_nodes(&self) -> Vec<NodeId> {
+    pub fn input_nodes(&self) -> Vec<NodeId> {
         self.nodes
             .keys()
-            .filter(|&id| matches!(self.nodes[id].node_type, NodeType::Input))
+            .filter(|&id| matches!(self.nodes[id].node_type, NodeKind::Input))
             .collect()
     }
 
-    pub fn sink_nodes(&self) -> Vec<NodeId> {
+    pub fn output_nodes(&self) -> Vec<NodeId> {
         self.nodes
             .keys()
-            .filter(|&id| matches!(self.nodes[id].node_type, NodeType::Output))
+            .filter(|&id| matches!(self.nodes[id].node_type, NodeKind::Output))
             .collect()
     }
 
@@ -120,7 +88,7 @@ impl DFG {
         self.nodes.is_empty()
     }
 
-    pub fn to_dot(&self, name: String) -> String {
+    pub fn to_dot(&self, name: &str) -> String {
         let mut dot: String = String::new();
 
         dot.push_str(&format!(
@@ -136,8 +104,8 @@ impl DFG {
                 "\t{} [label=\"{}\", shape={}];\n",
                 n_id,
                 node,
-                if node.node_type == NodeType::Input
-                    || node.node_type == NodeType::Output
+                if node.node_type == NodeKind::Input
+                    || node.node_type == NodeKind::Output
                 {
                     "box"
                 } else {
@@ -146,7 +114,7 @@ impl DFG {
             ));
         }
 
-        for (_, edge) in self.edges.iter() {
+        for edge in self.edges.values() {
             dot.push_str(&format!("\t{} -> {};\n", edge.input, edge.output));
         }
 
@@ -156,7 +124,30 @@ impl DFG {
     }
 }
 
-impl Default for DFG {
+macro_rules! dfg_index_impl {
+    ($field:ident, $idx:ty, $out:ty) => {
+        impl Index<$idx> for Dfg {
+            type Output = $out;
+
+            #[inline]
+            fn index(&self, index: $idx) -> &Self::Output {
+                &self.$field[index]
+            }
+        }
+
+        impl IndexMut<$idx> for Dfg {
+            #[inline]
+            fn index_mut(&mut self, index: $idx) -> &mut Self::Output {
+                &mut self.$field[index]
+            }
+        }
+    };
+}
+
+dfg_index_impl!(edges, EdgeId, Edge);
+dfg_index_impl!(nodes, NodeId, Node);
+
+impl Default for Dfg {
     fn default() -> Self {
         Self::new()
     }
@@ -167,7 +158,7 @@ pub struct Node {
     pub inputs: EntityList<EdgeId>,
     pub outputs: EntityList<EdgeId>,
     pub props: Vec<String>,
-    pub node_type: NodeType,
+    pub node_type: NodeKind,
 }
 
 #[derive(Debug)]
@@ -175,7 +166,7 @@ pub struct Edge {
     pub input: NodeId,
     pub output: NodeId,
     pub props: Vec<String>,
-    pub edge_type: EdgeType,
+    pub edge_type: Type,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -203,7 +194,7 @@ pub enum ArithOp {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum NodeType {
+pub enum NodeKind {
     Input,
     Output,
     Const(f64),
@@ -211,7 +202,7 @@ pub enum NodeType {
 }
 
 #[derive(Clone, Debug)]
-pub enum EdgeType {
+pub enum Type {
     Int {
         signed: bool,
         bits: usize,
@@ -253,20 +244,20 @@ impl std::fmt::Display for ArithOp {
     }
 }
 
-impl std::fmt::Display for EdgeType {
+impl std::fmt::Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EdgeType::Int { signed: s, bits: b } => {
+            Type::Int { signed: s, bits: b } => {
                 write!(f, "{}{}", if *s { "int" } else { "uint" }, b)
             }
-            EdgeType::Fixed {
+            Type::Fixed {
                 signed: s,
                 bits: b,
                 exp: e,
             } => write!(f, "{}fix<{},{}>", if *s { "s" } else { "u" }, b, e),
-            EdgeType::F64 => write!(f, "double"),
-            EdgeType::F32 => write!(f, "float"),
-            EdgeType::F16 => write!(f, "f16"),
+            Type::F64 => write!(f, "double"),
+            Type::F32 => write!(f, "float"),
+            Type::F16 => write!(f, "f16"),
         }
     }
 }
@@ -274,15 +265,15 @@ impl std::fmt::Display for EdgeType {
 impl std::fmt::Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.node_type {
-            NodeType::Input => write!(f, "Input"),
-            NodeType::Output => write!(f, "Output"),
-            NodeType::Op(o) => write!(f, "{o}"),
-            NodeType::Const(c) => write!(f, "{c}"),
+            NodeKind::Input => write!(f, "Input"),
+            NodeKind::Output => write!(f, "Output"),
+            NodeKind::Op(o) => write!(f, "{o}"),
+            NodeKind::Const(c) => write!(f, "{c}"),
         }
     }
 }
 
-impl std::fmt::Display for DFG {
+impl std::fmt::Display for Dfg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Nodes:")?;
 
