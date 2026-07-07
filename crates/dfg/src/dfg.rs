@@ -1,5 +1,6 @@
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
 use std::ops::{Index, IndexMut};
+use std::slice::IterMut;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct NodeId(u32);
