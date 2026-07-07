@@ -45,6 +45,10 @@ impl Dfg {
         e_id
     }
 
+    pub fn node_iter(&mut self) -> IterMut<'_, Node> {
+        self.nodes.values_mut()
+    }
+
     pub fn add_node(&mut self, node: Node) -> NodeId {
         self.nodes.push(node)
     }
