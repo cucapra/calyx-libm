@@ -1,0 +1,7 @@
+[package]
+name = "calyx-libm-dfg-passes"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+calyx-libm-dfg.workspace = true
