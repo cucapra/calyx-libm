@@ -1,4 +1,5 @@
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
+use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
 
@@ -44,6 +45,41 @@ impl Dfg {
             .outputs
             .push(e_id, &mut self.edge_pool);
         e_id
+    }
+
+    pub fn remove_edge(&mut self, e_id: EdgeId) {
+        let input_new_edges = self.nodes[self.edges[e_id].input]
+            .outputs
+            .as_slice(&self.edge_pool)
+            .iter()
+            .copied()
+            .filter(|e| *e != e_id)
+            .collect::<Vec<_>>();
+        self.nodes[self.edges[e_id].input]
+            .outputs
+            .clear(&mut self.edge_pool);
+        for edgeid in input_new_edges {
+            self.nodes[self.edges[e_id].input]
+                .outputs
+                .push(edgeid, &mut self.edge_pool);
+        }
+        let output_new_edges = self.nodes[self.edges[e_id].output]
+            .inputs
+            .as_slice(&self.edge_pool)
+            .iter()
+            .copied()
+            .filter(|e| *e != e_id)
+            .collect::<Vec<_>>();
+        self.nodes[self.edges[e_id].output]
+            .inputs
+            .clear(&mut self.edge_pool);
+        for edgeid in output_new_edges {
+            self.nodes[self.edges[e_id].output]
+                .inputs
+                .push(edgeid, &mut self.edge_pool);
+        }
+        todo!();
+        //figure out what to do with orphaned edge
     }
 
     pub fn node_iter(&mut self) -> IterMut<'_, Node> {
@@ -127,6 +163,66 @@ impl Dfg {
 
         dot
     }
+
+    ///The dfg should have exactly one input and one output node
+    pub fn replace_node_with_dfg(
+        self,
+        node_id: NodeId,
+        dfg: Dfg,
+    ) -> Result<Dfg, &'static str> {
+        if self.input_nodes().len() != 1 {
+            return Err("Not exactly one input");
+        } else if self.output_nodes().len() != 1 {
+            return Err("Not exactly one output");
+        }
+        let input_id: NodeId = *self.input_nodes().first().unwrap();
+        let replacement_input: NodeId =
+            self[self[node_id].inputs.first(&self.edge_pool).unwrap()].input;
+        let output_id: NodeId = *self.output_nodes().first().unwrap();
+        let replacement_output: NodeId =
+            self[self[node_id].outputs.first(&self.edge_pool).unwrap()].output;
+        let mut final_dfg = Dfg::with_nodes(self.nodes);
+        let mut node_map = HashMap::new();
+
+        for (old_id, node) in dfg.nodes.iter() {
+            let mut new_node = node.clone();
+            new_node.inputs = EntityList::new();
+            new_node.outputs = EntityList::new();
+
+            let new_id = final_dfg.add_node(new_node);
+            node_map.insert(old_id, new_id);
+        }
+        for edge in dfg.edges.values() {
+            final_dfg.add_edge(Edge {
+                input: if edge.input == input_id {
+                    replacement_input
+                } else {
+                    *node_map.get(&edge.input).unwrap()
+                },
+                output: if edge.output == output_id {
+                    replacement_output
+                } else {
+                    *node_map.get(&edge.output).unwrap()
+                },
+                props: edge.props.clone(),
+                edge_type: edge.edge_type.clone(),
+            });
+        }
+        final_dfg.remove_edge(
+            final_dfg[node_id]
+                .inputs
+                .first(&final_dfg.edge_pool)
+                .unwrap(),
+        );
+        final_dfg.remove_edge(
+            final_dfg[node_id]
+                .outputs
+                .first(&final_dfg.edge_pool)
+                .unwrap(),
+        );
+        //TODO figure out what to do with orphaned node
+        Ok(final_dfg)
+    }
 }
 
 macro_rules! dfg_index_impl {
@@ -158,7 +254,7 @@ impl Default for Dfg {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
     pub inputs: EntityList<EdgeId>,
     pub outputs: EntityList<EdgeId>,
@@ -166,7 +262,7 @@ pub struct Node {
     pub node_type: NodeKind,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Edge {
     pub input: NodeId,
     pub output: NodeId,
