@@ -18,6 +18,14 @@ const INLINE: ir::Attribute = ir::Attribute::Bool(ir::BoolAttr::Inline);
 
 type Signature = (ir::Id, Vec<ir::PortDef<u64>>);
 
+/// A polynomial evaluator using Horner's scheme.
+///
+/// # Interface
+///
+/// * `in` - The polynomial argument, normalized to the interval `[-1, 1)`.
+/// * `lut` - The packed polynomial coefficients. The degree-zero coefficient
+///   occupies the most-significant position.
+/// * `out` - The result of the evaluation.
 pub struct Horner<'a> {
     pub format: &'a Format,
     pub spec: &'a Datapath,
