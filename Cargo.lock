@@ -181,6 +181,7 @@ name = "calyx-libm-dfg"
 version = "0.1.0"
 dependencies = [
  "cranelift-entity",
+ "malachite",
 ]
 
 [[package]]
@@ -188,6 +189,8 @@ name = "calyx-libm-dfg-passes"
 version = "0.1.0"
 dependencies = [
  "calyx-libm-dfg",
+ "cranelift-entity",
+ "malachite",
 ]
 
 [[package]]
