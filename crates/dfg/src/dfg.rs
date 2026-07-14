@@ -1,4 +1,5 @@
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
+use malachite::Rational;
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
@@ -90,7 +91,7 @@ impl Dfg {
         self.nodes.push(node)
     }
 
-    pub fn add_const(&mut self, value: f64) -> NodeId {
+    pub fn add_const(&mut self, value: Rational) -> NodeId {
         self.nodes.push(Node {
             node_type: NodeKind::Const(value),
             inputs: EntityList::new(),
@@ -298,7 +299,7 @@ pub enum ArithOp {
 pub enum NodeKind {
     Input,
     Output,
-    Const(f64),
+    Const(Rational),
     Op(ArithOp),
 }
 
