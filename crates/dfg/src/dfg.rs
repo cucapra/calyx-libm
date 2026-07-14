@@ -1,8 +1,10 @@
+use calyx_libm_utils as utils;
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
 use malachite::Rational;
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
+use utils::Format;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct NodeId(u32);
@@ -305,15 +307,8 @@ pub enum NodeKind {
 
 #[derive(Clone, Debug)]
 pub enum Type {
-    Int {
-        signed: bool,
-        bits: usize,
-    },
-    Fixed {
-        signed: bool,
-        bits: usize,
-        exp: isize,
-    },
+    Int { signed: bool, bits: usize },
+    Fixed(Format),
     F64,
     F32,
     F16,
@@ -352,11 +347,13 @@ impl std::fmt::Display for Type {
             Type::Int { signed: s, bits: b } => {
                 write!(f, "{}{}", if *s { "int" } else { "uint" }, b)
             }
-            Type::Fixed {
-                signed: s,
-                bits: b,
-                exp: e,
-            } => write!(f, "{}fix<{},{}>", if *s { "s" } else { "u" }, b, e),
+            Type::Fixed(form) => write!(
+                f,
+                "{}fix<{},{}>",
+                if form.is_signed { "s" } else { "u" },
+                form.width,
+                form.scale
+            ),
             Type::F64 => write!(f, "double"),
             Type::F32 => write!(f, "float"),
             Type::F16 => write!(f, "f16"),
