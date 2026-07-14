@@ -58,6 +58,12 @@ impl DfgBuilder {
     }
 }
 
+impl Default for DfgBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 macro_rules! dfg_index_impl {
     ($field:ident, $idx:ty, $out:ty) => {
         impl Index<$idx> for DfgBuilder {

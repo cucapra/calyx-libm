@@ -17,6 +17,7 @@ pub fn pass(dfg: &mut Dfg) -> Result<(), &'static str> {
 fn parse_operator(op: ArithOp) {
     match op {
         ArithOp::Sin => {}
-        _ => return,
+        ArithOp::Cos => {}
+        _ => (),
     }
 }
