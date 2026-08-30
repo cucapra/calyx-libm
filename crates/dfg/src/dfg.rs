@@ -1,6 +1,6 @@
 use calyx_libm_utils as utils;
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
-use malachite::{Natural, Rational};
+use malachite::{Rational};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
