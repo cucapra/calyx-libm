@@ -8,6 +8,7 @@ pub fn pass(dfg: &mut Dfg) -> Result<(), &'static str> {
             NodeKind::Input => continue,
             NodeKind::Output => continue,
             NodeKind::Const(_) => continue,
+            NodeKind::Rom(_) => continue,
             NodeKind::Op(op) => parse_operator(op),
         }
     }

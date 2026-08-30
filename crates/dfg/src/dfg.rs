@@ -1,6 +1,6 @@
 use calyx_libm_utils as utils;
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
-use malachite::Rational;
+use malachite::{Natural, Rational};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
@@ -303,6 +303,7 @@ pub enum NodeKind {
     Output,
     Const(Rational),
     Op(ArithOp),
+    Rom(RomData),
 }
 
 #[derive(Clone, Debug)]
@@ -312,6 +313,11 @@ pub enum Type {
     F64,
     F32,
     F16,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct RomData {
+    pub data: Vec<Rational>,
 }
 
 impl std::fmt::Display for ArithOp {
@@ -368,7 +374,17 @@ impl std::fmt::Display for Node {
             NodeKind::Output => write!(f, "Output"),
             NodeKind::Op(o) => write!(f, "{o}"),
             NodeKind::Const(c) => write!(f, "{c}"),
+            NodeKind::Rom(r) => write!(f, "{r}"),
         }
+    }
+}
+
+impl std::fmt::Display for RomData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for r in &self.data {
+            write!(f, "{r}")?;
+        }
+        Ok(())
     }
 }
 

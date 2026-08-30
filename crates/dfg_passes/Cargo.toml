@@ -5,5 +5,7 @@ edition.workspace = true
 
 [dependencies]
 calyx-libm-dfg.workspace = true
+calyx-libm-utils.workspace = true
+calyx-libm-approx.workspace = true
 cranelift-entity.workspace = true
 malachite.workspace = true

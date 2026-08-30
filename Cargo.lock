@@ -189,7 +189,9 @@ dependencies = [
 name = "calyx-libm-dfg-passes"
 version = "0.1.0"
 dependencies = [
+ "calyx-libm-approx",
  "calyx-libm-dfg",
+ "calyx-libm-utils",
  "cranelift-entity",
  "malachite",
 ]
