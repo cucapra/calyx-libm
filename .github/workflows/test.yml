@@ -48,6 +48,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Run Ruff
-        uses: astral-sh/ruff-action@v4
+        uses: astral-sh/ruff-action@v4.1.0
       - name: Check formatting
         run: ruff format --check
