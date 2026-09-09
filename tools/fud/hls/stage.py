@@ -35,7 +35,7 @@ class FPBenchStage(Stage):
         exporter = config['stages', self.name, 'exporter']
         lang = config.get(['stages', self.name, 'lang']) or 'vivado'
 
-        cmd = ' '.join([racket, exporter, '--lang', lang, '- -'])
+        cmd = f'{racket} {exporter} --lang {lang} - -'
 
         @builder.step(description=cmd)
         def run_exporter(stream: SourceType.Stream) -> SourceType.Stream:

@@ -1,7 +1,13 @@
 line-length = 80
+target-version = "py39"
 
 src = [
     "tools/fuzz",
+]
+
+[lint]
+ignore = [
+    "FA100",
 ]
 
 [format]
