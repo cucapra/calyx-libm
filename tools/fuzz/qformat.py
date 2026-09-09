@@ -43,7 +43,11 @@ class QFormat:
             **mode,
         )
 
-    def decode(self, bits: int, mode: RoundingMode = {}) -> FixedPoint:
+    def decode(
+        self,
+        bits: int,
+        mode: RoundingMode = {},  # noqa: B006
+    ) -> FixedPoint:
         return self.cast(hex(bits), mode)
 
     def __str__(self) -> str:

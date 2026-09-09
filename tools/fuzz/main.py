@@ -66,7 +66,7 @@ def format_diagnostic(
 ) -> str:
     args = ', '.join(map(hex, vals))
 
-    return (
+    return (  # noqa: UP032
         '  ---\n'
         '  FPCore: {core}\n'
         '  args: [{args}]\n'
@@ -150,7 +150,7 @@ def main():
             else:
                 print('ok' if got == expected else 'not ok')
                 print(format_diagnostic(bench, vals, fmt, got, expected))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print('Bail out!', e)
 
 

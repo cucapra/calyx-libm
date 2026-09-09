@@ -37,7 +37,7 @@ class CalyxLibmStage(Stage):
         exe = config['stages', self.name, 'exec']
         flags = config.get(['stages', self.name, 'flags']) or ''
 
-        cmd = ' '.join([exe, flags])
+        cmd = f'{exe} {flags}'
 
         @builder.step(description=cmd)
         def run_calyx_libm(stream: SourceType.Stream) -> SourceType.Stream:
