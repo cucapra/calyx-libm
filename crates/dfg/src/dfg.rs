@@ -1,6 +1,6 @@
 use calyx_libm_utils as utils;
 use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
-use malachite::Rational;
+use malachite::{Natural, Rational};
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
@@ -51,41 +51,31 @@ impl Dfg {
     }
 
     pub fn remove_edge(&mut self, e_id: EdgeId) {
-        let input_new_edges = self.nodes[self.edges[e_id].input]
+        let input = self.edges[e_id].input;
+        let output = self.edges[e_id].output;
+
+        let input_pos = self.nodes[input]
             .outputs
             .as_slice(&self.edge_pool)
             .iter()
-            .copied()
-            .filter(|e| *e != e_id)
-            .collect::<Vec<_>>();
-        self.nodes[self.edges[e_id].input]
+            .position(|e| *e == e_id)
+            .expect("edge should be in input node's outputs");
+        self.nodes[input]
             .outputs
-            .clear(&mut self.edge_pool);
-        for edgeid in input_new_edges {
-            self.nodes[self.edges[e_id].input]
-                .outputs
-                .push(edgeid, &mut self.edge_pool);
-        }
-        let output_new_edges = self.nodes[self.edges[e_id].output]
+            .swap_remove(input_pos, &mut self.edge_pool);
+
+        let output_pos = self.nodes[output]
             .inputs
             .as_slice(&self.edge_pool)
             .iter()
-            .copied()
-            .filter(|e| *e != e_id)
-            .collect::<Vec<_>>();
-        self.nodes[self.edges[e_id].output]
+            .position(|e| *e == e_id)
+            .expect("edge should be in output node's inputs");
+        self.nodes[output]
             .inputs
-            .clear(&mut self.edge_pool);
-        for edgeid in output_new_edges {
-            self.nodes[self.edges[e_id].output]
-                .inputs
-                .push(edgeid, &mut self.edge_pool);
-        }
-        todo!();
-        //figure out what to do with orphaned edge
+            .remove(output_pos, &mut self.edge_pool);
     }
 
-    pub fn node_iter(&mut self) -> IterMut<'_, Node> {
+    pub fn nodes_mut(&mut self) -> IterMut<'_, Node> {
         self.nodes.values_mut()
     }
 
@@ -168,15 +158,11 @@ impl Dfg {
     }
 
     ///The dfg should have exactly one input and one output node
-    pub fn replace_node_with_dfg(
-        self,
-        node_id: NodeId,
-        dfg: Dfg,
-    ) -> Result<Dfg, &'static str> {
+    pub fn replace_node_with_dfg(&mut self, node_id: NodeId, dfg: Dfg) {
         if self.input_nodes().len() != 1 {
-            return Err("Not exactly one input");
+            panic!("Not exactly one input");
         } else if self.output_nodes().len() != 1 {
-            return Err("Not exactly one output");
+            panic!("Not exactly one output");
         }
         let input_id: NodeId = *self.input_nodes().first().unwrap();
         let replacement_input: NodeId =
@@ -184,7 +170,6 @@ impl Dfg {
         let output_id: NodeId = *self.output_nodes().first().unwrap();
         let replacement_output: NodeId =
             self[self[node_id].outputs.first(&self.edge_pool).unwrap()].output;
-        let mut final_dfg = Dfg::with_nodes(self.nodes);
         let mut node_map = HashMap::new();
 
         for (old_id, node) in dfg.nodes.iter() {
@@ -192,11 +177,11 @@ impl Dfg {
             new_node.inputs = EntityList::new();
             new_node.outputs = EntityList::new();
 
-            let new_id = final_dfg.add_node(new_node);
+            let new_id = self.add_node(new_node);
             node_map.insert(old_id, new_id);
         }
         for edge in dfg.edges.values() {
-            final_dfg.add_edge(Edge {
+            self.add_edge(Edge {
                 input: if edge.input == input_id {
                     replacement_input
                 } else {
@@ -211,20 +196,9 @@ impl Dfg {
                 edge_type: edge.edge_type.clone(),
             });
         }
-        final_dfg.remove_edge(
-            final_dfg[node_id]
-                .inputs
-                .first(&final_dfg.edge_pool)
-                .unwrap(),
-        );
-        final_dfg.remove_edge(
-            final_dfg[node_id]
-                .outputs
-                .first(&final_dfg.edge_pool)
-                .unwrap(),
-        );
+        self.remove_edge(self[node_id].inputs.first(&self.edge_pool).unwrap());
+        self.remove_edge(self[node_id].outputs.first(&self.edge_pool).unwrap());
         //TODO figure out what to do with orphaned node
-        Ok(final_dfg)
     }
 }
 
@@ -317,7 +291,7 @@ pub enum Type {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RomData {
-    pub data: Vec<Rational>,
+    pub data: Vec<Natural>,
 }
 
 impl std::fmt::Display for ArithOp {
