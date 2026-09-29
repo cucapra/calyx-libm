@@ -2,7 +2,7 @@ use calyx_libm_dfg as dfg;
 use dfg::*;
 
 pub fn pass(dfg: &mut Dfg) -> Result<(), &'static str> {
-    for node in dfg.node_iter() {
+    for node in dfg.nodes_mut() {
         let kind = node.node_type.clone();
         match kind {
             NodeKind::Input => continue,
