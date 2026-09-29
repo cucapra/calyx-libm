@@ -119,7 +119,6 @@ dependencies = [
  "calyx-libm-ast-lowering",
  "calyx-libm-backend",
  "calyx-libm-dfg",
- "calyx-libm-dfg-passes",
  "calyx-libm-hir",
  "calyx-libm-hir-passes",
  "calyx-libm-utils",
@@ -180,17 +179,6 @@ dependencies = [
 name = "calyx-libm-dfg"
 version = "0.1.0"
 dependencies = [
- "calyx-libm-utils",
- "cranelift-entity",
- "malachite",
-]
-
-[[package]]
-name = "calyx-libm-dfg-passes"
-version = "0.1.0"
-dependencies = [
- "calyx-libm-approx",
- "calyx-libm-dfg",
  "calyx-libm-utils",
  "cranelift-entity",
  "malachite",
