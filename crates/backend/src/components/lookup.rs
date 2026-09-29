@@ -12,6 +12,14 @@ use calyx_libm_utils::mangling::{Hash, mangle};
 use super::{ComponentBuilder, ComponentManager, Ids, Rom};
 use crate::{Import, IrBuilder};
 
+/// A lookup table with uniform power-of-two domain splitting and argument
+/// reduction.
+///
+/// # Interface
+///
+/// * `in` - The unreduced argument.
+/// * `out` - The result of the ROM lookup.
+/// * `arg` - The reduced argument normalized to the interval `[-1, 1)`.
 pub struct LookupTable<'a> {
     pub in_width: u64,
     pub out_width: u64,

@@ -1,29 +1,42 @@
 extern "numbers.sv" {
+  // Zero pad on the right.
   comb primitive num_rpad<"share"=1>[
     IN_WIDTH, OUT_WIDTH
   ](@data in: IN_WIDTH) -> (out: OUT_WIDTH);
 
+  // Two's complement negation.
   comb primitive num_sneg<"share"=1>[WIDTH](@data in: WIDTH) -> (out: WIDTH);
+
+  // Two's complement absolute value.
   comb primitive num_sabs<"share"=1>[WIDTH](@data in: WIDTH) -> (out: WIDTH);
 
+  // Minimum of unsigned values.
   comb primitive num_min<"share"=1>[
     WIDTH
   ](@data left: WIDTH, @data right: WIDTH) -> (out: WIDTH);
 
+  // Maximum of unsigned values.
   comb primitive num_max<"share"=1>[
     WIDTH
   ](@data left: WIDTH, @data right: WIDTH) -> (out: WIDTH);
 
+  // Minimum of two's complement values.
   comb primitive num_smin<"share"=1>[
     WIDTH
   ](@data left: WIDTH, @data right: WIDTH) -> (out: WIDTH);
 
+  // Maximum of two's complement values.
   comb primitive num_smax<"share"=1>[
     WIDTH
   ](@data left: WIDTH, @data right: WIDTH) -> (out: WIDTH);
 
+  // Extract the most significant bit of the input.
   comb primitive num_ssignbit<"share"=1>[WIDTH](@data in: WIDTH) -> (out: 1);
 
+  // Two's complement addition with alignment.
+  //
+  // `LEFT_LSB` and `RIGHT_LSB` denote the number of trailing zeros added to the
+  // left and right operand, respectively.
   comb primitive num_sadd<"share"=1>[
     LEFT_WIDTH, LEFT_LSB, RIGHT_WIDTH, RIGHT_LSB, OUT_WIDTH
   ](
@@ -33,6 +46,9 @@ extern "numbers.sv" {
     out: OUT_WIDTH
   );
 
+  // Two's complement multiplication with precision control.
+  //
+  // Selects `OUT_WIDTH` bits of the product, starting at bit `OUT_LSB`.
   primitive num_smul<"state_share"=1>[
     LEFT_WIDTH, RIGHT_WIDTH, OUT_WIDTH, OUT_LSB
   ](

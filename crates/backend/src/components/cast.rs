@@ -8,6 +8,19 @@ use calyx_libm_utils::{Diagnostic, Format};
 use super::{ComponentBuilder, ComponentManager, Ids};
 use crate::{Import, IrBuilder};
 
+/// A fixed-point numeric cast.
+///
+/// # Semantics
+///
+/// * If the target type has a greater range than the source type, then the
+///   source value is either sign-extended or zero-extended according to the
+///   signedness of the source type.
+/// * If the target type has a greater precision than the source type, then the
+///   source value is zero-padded.
+/// * If the target type has lesser range or precision than the source type,
+///   then the extra bits of the source value are discarded. This has truncation
+///   (round towards negative infinity) semantics when reducing precision and
+///   wrapping semantics when reducing range.
 pub struct Cast<'a> {
     pub from: &'a Format,
     pub to: &'a Format,

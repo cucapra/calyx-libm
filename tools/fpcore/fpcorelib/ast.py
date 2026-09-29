@@ -160,7 +160,10 @@ class FPCore(Generic[Num]):
     body: Expr[Num]
 
     def interp(
-        self, args: Iterable[Num], lib: Lib[Num], env: Ctx[Num] = {}
+        self,
+        args: Iterable[Num],
+        lib: Lib[Num],
+        env: Ctx[Num] = {},  # noqa: B006
     ) -> Num:
         ctx = {arg.var: lib['cast'](val) for arg, val in zip(self.args, args)}
 
