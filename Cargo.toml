@@ -15,6 +15,7 @@ calyx-libm-dfg.workspace = true
 calyx-libm-hir.workspace = true
 calyx-libm-hir-passes.workspace = true
 calyx-libm-utils.workspace = true
+itertools.workspace = true
 
 [workspace]
 members = ["crates/*"]
