@@ -5,3 +5,6 @@ edition.workspace = true
 
 [dependencies]
 cranelift-entity.workspace = true
+malachite.workspace = true
+calyx-libm-utils.workspace = true
+itertools.workspace = true
