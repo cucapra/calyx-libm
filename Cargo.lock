@@ -122,7 +122,6 @@ dependencies = [
  "calyx-libm-hir",
  "calyx-libm-hir-passes",
  "calyx-libm-utils",
- "itertools",
 ]
 
 [[package]]

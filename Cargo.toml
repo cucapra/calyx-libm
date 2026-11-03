@@ -15,7 +15,6 @@ calyx-libm-dfg.workspace = true
 calyx-libm-hir.workspace = true
 calyx-libm-hir-passes.workspace = true
 calyx-libm-utils.workspace = true
-itertools.workspace = true
 
 [workspace]
 members = ["crates/*"]
@@ -23,7 +22,7 @@ members = ["crates/*"]
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.95"
+rust-version = "1.96"
 
 [workspace.dependencies]
 argh = "0.1"
