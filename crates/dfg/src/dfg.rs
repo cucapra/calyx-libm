@@ -1,9 +1,11 @@
 use calyx_libm_utils as utils;
-use cranelift_entity::{EntityList, EntityRef, ListPool, PrimaryMap, entity_impl};
-use std::mem;
+use cranelift_entity::{
+    EntityList, EntityRef, ListPool, PrimaryMap, entity_impl,
+};
 use itertools::Itertools;
 use malachite::{Natural, Rational};
 use std::collections::HashMap;
+use std::mem;
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
 use utils::Format;
@@ -95,9 +97,11 @@ impl Dfg {
         while let Some(&edge) = self.inputs(node_id).last() {
             self.remove_edge(edge);
         }
-    
+
         // Remove all output edges
-        while let Some(&edge) = self[node_id].outputs.as_slice(&self.edge_pool).last() {
+        while let Some(&edge) =
+            self[node_id].outputs.as_slice(&self.edge_pool).last()
+        {
             self.remove_edge(edge);
         }
 
@@ -653,9 +657,10 @@ mod tests {
     fn removing_invalid_node_does_not_change_graph() {
         let (mut dfg, _, _) = unary_graph();
         let before = dfg.to_string();
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            dfg.remove_node(NodeId::new(2));
-        }));
+        let result =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                dfg.remove_node(NodeId::new(2));
+            }));
         assert!(result.is_err());
         assert_eq!(dfg.to_string(), before);
         assert_consistent(&dfg);
