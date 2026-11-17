@@ -299,7 +299,7 @@ impl Dfg {
         }
 
         self.remove_edge(incoming_edge);
-        // The replaced node remains allocated but disconnected.
+        self.remove_node(node_id);
     }
 }
 
