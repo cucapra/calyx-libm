@@ -1,5 +1,6 @@
 use calyx_libm_utils as utils;
-use cranelift_entity::{EntityList, ListPool, PrimaryMap, entity_impl};
+use cranelift_entity::{EntityList, EntityRef, ListPool, PrimaryMap, entity_impl};
+use std::mem;
 use itertools::Itertools;
 use malachite::{Natural, Rational};
 use std::collections::HashMap;
@@ -77,6 +78,50 @@ impl Dfg {
         self.nodes[output]
             .inputs
             .remove(output_pos, &mut self.edge_pool);
+    }
+
+    /// Remove a node and disconnect all of its incident edges.
+    ///
+    /// The last node takes the removed node's slot. If a node moves, returns
+    /// `(old_id, new_id)` so callers can update IDs stored outside this DFG.
+    /// Internal edge endpoints and declared outputs are updated automatically.
+    /// Other node IDs and all edge IDs remain unchanged. Disconnected edges
+    /// remain allocated, as with `remove_edge`; use `active_edge_ids` to iterate
+    /// connected edges. The removed node's ID must no longer be used.
+    pub fn remove_node(&mut self, node_id: NodeId) -> Option<(NodeId, NodeId)> {
+        let last_id = NodeId::new(self.nodes.len() - 1);
+
+        // Remove all input edges
+        while let Some(&edge) = self.inputs(node_id).last() {
+            self.remove_edge(edge);
+        }
+    
+        // Remove all output edges
+        while let Some(&edge) = self[node_id].outputs.as_slice(&self.edge_pool).last() {
+            self.remove_edge(edge);
+        }
+
+        // Make sure it is removed as an output if it exists as one
+        self.output_nodes.retain(|&id| id != node_id);
+        self.nodes.swap_remove(node_id);
+
+        if node_id == last_id {
+            return None;
+        }
+
+        // Reconnects edges to new node_id
+        for &edge in self.nodes[node_id].inputs.as_slice(&self.edge_pool) {
+            self.edges[edge].output = node_id;
+        }
+        for &edge in self.nodes[node_id].outputs.as_slice(&self.edge_pool) {
+            self.edges[edge].input = node_id;
+        }
+        for output in &mut self.output_nodes {
+            if *output == last_id {
+                *output = node_id;
+            }
+        }
+        Some((last_id, node_id))
     }
 
     pub fn nodes_mut(&mut self) -> IterMut<'_, Node> {
@@ -251,6 +296,32 @@ impl Dfg {
 
         self.remove_edge(incoming_edge);
         // The replaced node remains allocated but disconnected.
+    }
+}
+
+pub trait PrimaryMapExt<K, V> {
+    fn remove(&mut self, k: K) -> V;
+
+    fn swap_remove(&mut self, k: K) -> V;
+}
+
+impl<K: EntityRef, V> PrimaryMapExt<K, V> for PrimaryMap<K, V> {
+    fn remove(&mut self, k: K) -> V {
+        let mut vec = Vec::from(mem::take(self));
+        let v = vec.remove(k.index());
+
+        *self = vec.into();
+
+        v
+    }
+
+    fn swap_remove(&mut self, k: K) -> V {
+        let mut vec = Vec::from(mem::take(self));
+        let v = vec.swap_remove(k.index());
+
+        *self = vec.into();
+
+        v
     }
 }
 
@@ -526,6 +597,68 @@ mod tests {
     #[should_panic(expected = "invalid output node")]
     fn rejects_invalid_output() {
         Dfg::new().add_output(NodeId::from_u32(0));
+    }
+
+    #[test]
+    fn removing_node_repairs_moved_node_and_preserves_operand_order() {
+        let mut dfg = Dfg::new();
+        let input = node(&mut dfg, NodeKind::Input);
+        let target = node(&mut dfg, NodeKind::Op(ArithOp::Neg));
+        let consumer = node(&mut dfg, NodeKind::Op(ArithOp::Sub));
+        let moved = node(&mut dfg, NodeKind::Op(ArithOp::Abs));
+        connect(&mut dfg, input, target);
+        connect(&mut dfg, target, target);
+        connect(&mut dfg, target, consumer);
+        connect(&mut dfg, target, consumer);
+        let first = connect(&mut dfg, input, consumer);
+        let second = connect(&mut dfg, moved, consumer);
+        let incoming = connect(&mut dfg, input, moved);
+        let loop_edge = connect(&mut dfg, moved, moved);
+        dfg.add_output(target);
+        dfg.add_output(moved);
+        dfg.add_output(consumer);
+        dfg.add_output(target);
+        dfg.add_output(moved);
+
+        assert_eq!(dfg.remove_node(target), Some((moved, target)));
+
+        assert_eq!(dfg.len(), 3);
+        assert_eq!(dfg[target].node_type, NodeKind::Op(ArithOp::Abs));
+        assert_eq!(dfg.inputs(consumer), [first, second]);
+        assert_eq!(dfg[second].input, target);
+        assert_eq!(dfg[incoming].output, target);
+        assert_eq!(dfg[loop_edge].input, target);
+        assert_eq!(dfg[loop_edge].output, target);
+        assert_eq!(dfg.active_edge_ids().count(), 4);
+        assert_eq!(
+            dfg.output_nodes().collect::<Vec<_>>(),
+            [target, consumer, target]
+        );
+        assert_consistent(&dfg);
+    }
+
+    #[test]
+    fn removing_last_node_and_only_node_needs_no_remapping() {
+        let (mut dfg, input, output) = unary_graph();
+        assert_eq!(dfg.remove_node(output), None);
+        assert_eq!(dfg.len(), 1);
+        assert!(dfg.output_nodes().next().is_none());
+        assert!(dfg.active_edge_ids().next().is_none());
+        assert_consistent(&dfg);
+        assert_eq!(dfg.remove_node(input), None);
+        assert!(dfg.is_empty());
+    }
+
+    #[test]
+    fn removing_invalid_node_does_not_change_graph() {
+        let (mut dfg, _, _) = unary_graph();
+        let before = dfg.to_string();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            dfg.remove_node(NodeId::new(2));
+        }));
+        assert!(result.is_err());
+        assert_eq!(dfg.to_string(), before);
+        assert_consistent(&dfg);
     }
 
     #[test]
