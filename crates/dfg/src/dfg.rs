@@ -329,6 +329,7 @@ pub enum NodeKind {
     Const(Rational),
     Op(ArithOp),
     Rom(RomData),
+    Indexer(IndexerData),
 }
 
 #[derive(Clone, Debug)]
@@ -343,6 +344,17 @@ pub enum Type {
 #[derive(Clone, Debug, PartialEq)]
 pub struct RomData {
     pub data: Vec<Natural>,
+}
+
+/// Uniform buckets beginning at `start`, each of width `2^bucket_size_exp`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct IndexerData {
+    /// Lower boundary of the first bucket.
+    pub start: Rational,
+    /// Number of buckets in the domain.
+    pub bucket_count: usize,
+    /// Base-two exponent of the bucket width; negative values allow fractions.
+    pub bucket_size_exp: i32,
 }
 
 impl std::fmt::Display for ArithOp {
@@ -399,6 +411,7 @@ impl std::fmt::Display for Node {
             NodeKind::Op(o) => write!(f, "{o}"),
             NodeKind::Const(c) => write!(f, "{c}"),
             NodeKind::Rom(r) => write!(f, "{r}"),
+            NodeKind::Indexer(indexer) => write!(f, "{indexer}"),
         }
     }
 }
@@ -409,6 +422,16 @@ impl std::fmt::Display for RomData {
             write!(f, "{r}")?;
         }
         Ok(())
+    }
+}
+
+impl std::fmt::Display for IndexerData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Indexer(start={}, buckets={}, size=2^{})",
+            self.start, self.bucket_count, self.bucket_size_exp
+        )
     }
 }
 
